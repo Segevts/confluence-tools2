@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junction Workflow Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f4f5f7;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .wizard-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #172b4d;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #6b778c;
+            font-size: 14px;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+        
+        .progress-step::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 3px;
+            background: #dfe1e6;
+            z-index: 0;
+        }
+        
+        .progress-step:last-child::after {
+            display: none;
+        }
+        
+        .progress-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #dfe1e6;
+            color: #6b778c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        
+        .progress-step.active .progress-circle {
+            background: #0052cc;
+            color: white;
+        }
+        
+        .progress-step.completed .progress-circle {
+            background: #36b37e;
+            color: white;
+        }
+        
+        .progress-step.completed::after {
+            background: #36b37e;
+        }
+        
+        .progress-label {
+            font-size: 11px;
+            color: #6b778c;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 30px;
+            display: none;
+        }
+        
+        .card.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card h2 {
+            color: #172b4d;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .card .subtitle {
+            color: #6b778c;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        
+        /* Button Styles */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: 2px solid #dfe1e6;
+            border-radius: 8px;
+            background: white;
+            color: #172b4d;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .btn:hover {
+            border-color: #0052cc;
+            background: #f4f5f7;
+        }
+        
+        .btn.selected {
+            border-color: #0052cc;
+            background: #deebff;
+            color: #0052cc;
+        }
+        
+        .btn-yes {
+            border-color: #36b37e;
+            color: #36b37e;
+        }
+        
+        .btn-yes:hover, .btn-yes.selected {
+            background: #e3fcef;
+            border-color: #36b37e;
+            color: #006644;
+        }
+        
+        .btn-no {
+            border-color: #de350b;
+            color: #de350b;
+        }
+        
+        .btn-no:hover, .btn-no.selected {
+            background: #ffebe6;
+            border-color: #de350b;
+            color: #bf2600;
+        }
+        
+        /* Country Grid */
+        .country-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .country-btn {
+            padding: 12px 15px;
+            font-size: 14px;
+            min-width: auto;
+        }
+        
+        /* Road Type Buttons */
+        .road-type-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .road-type-btn .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .road-type-btn .speed {
+            font-size: 12px;
+            color: #6b778c;
+            margin-top: 5px;
+        }
+        
+        /* Result Card */
+        .result-card {
+            background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .result-card h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .result-speed {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .result-unit {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .result-confidence {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        /* Summary */
+        .summary {
+            background: #f4f5f7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary h4 {
+            color: #172b4d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dfe1e6;
+            font-size: 14px;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            color: #6b778c;
+        }
+        
+        .summary-value {
+            color: #172b4d;
+            font-weight: 500;
+        }
+        
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #dfe1e6;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn.back {
+            background: white;
+            border: 1px solid #dfe1e6;
+            color: #6b778c;
+        }
+        
+        .nav-btn.back:hover {
+            background: #f4f5f7;
+        }
+        
+        .nav-btn.reset {
+            background: #de350b;
+            border: none;
+            color: white;
+        }
+        
+        .nav-btn.reset:hover {
+            background: #bf2600;
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: #deebff;
+            border-left: 4px solid #0052cc;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+        }
+        
+        .info-box.warning {
+            background: #fffae6;
+            border-color: #ff991f;
+        }
+        
+        .info-box.success {
+            background: #e3fcef;
+            border-color: #36b37e;
+        }
+        
+        .info-box p {
+            color: #172b4d;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Exception List */
+        .exception-list {
+            margin: 15px 0;
+        }
+        
+        .exception-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f4f5f7;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .exception-item:hover {
+            background: #ebecf0;
+        }
+        
+        .exception-item.selected {
+            background: #deebff;
+            border: 1px solid #0052cc;
+        }
+        
+        .exception-item input {
+            margin-right: 12px;
+        }
+        
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 500px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            .country-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="header">
+            <h1>Junction Workflow Wizard</h1>
+            <p>Answer the questions to determine the correct legal speed</p>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">
+                <div class="progress-circle">1</div>
+                <div class="progress-label">Sign</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="progress-circle">2</div>
+                <div class="progress-label">Country</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="progress-circle">3</div>
+                <div class="progress-label">Direction</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="progress-circle">4</div>
+                <div class="progress-label">Road Type</div>
+            </div>
+            <div class="progress-step" data-step="5">
+                <div class="progress-circle">5</div>
+                <div class="progress-label">Result</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Explicit Sign -->
+        <div class="card active" id="step1">
+            <h2>Is there an explicit speed sign?</h2>
+            <p class="subtitle">Check for posted speed limit signs before or at the junction</p>
+            
+            <div class="btn-group">
+                <button class="btn btn-yes" onclick="selectExplicitSign(true)">
+                    ✓ YES - Sign Present
+                </button>
+                <button class="btn btn-no" onclick="selectExplicitSign(false)">
+                    ✗ NO - No Sign
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 1b: Enter Sign Speed -->
+        <div class="card" id="step1b">
+            <h2>What speed does the sign show?</h2>
+            <p class="subtitle">Enter the speed limit shown on the explicit sign</p>
+            
+            <div style="margin-bottom: 20px;">
+                <input type="number" id="signSpeedInput" placeholder="Enter speed (e.g., 50)" 
+                       style="width: 100%; padding: 15px; font-size: 18px; border: 2px solid #dfe1e6; border-radius: 8px;">
+                <p style="color: #6b778c; font-size: 12px; margin-top: 8px;">Enter speed in km/h</p>
+            </div>
+            
+            <button class="btn" onclick="submitSignSpeed()" style="width: 100%; background: #0052cc; color: white; border-color: #0052cc;">
+                Continue
+            </button>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn back" onclick="goToStep(1)">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Country Selection -->
+        <div class="card" id="step2">
+            <h2>Select the country</h2>
+            <p class="subtitle">Choose the country for this map</p>
+            
+            <div class="country-grid" id="countryGrid">
+                <!-- Countries will be populated by JavaScript -->
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn back" onclick="goToStep(1)">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Direction -->
+        <div class="card" id="step3">
+            <h2>What is your direction?</h2>
+            <p class="subtitle" id="directionSubtitle">Are you going straight or turning at this junction?</p>
+            
+            <div class="info-box" id="propagationInfo">
+                <!-- Will be populated based on country -->
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn" onclick="selectDirection('straight')" id="btnStraight">
+                    ➡️ Going STRAIGHT
+                </button>
+                <button class="btn" onclick="selectDirection('turn')" id="btnTurn">
+                    ↪️ TURNING
+                </button>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn back" onclick="goToStep(2)">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Road Type -->
+        <div class="card" id="step4">
+            <h2>What is the road type after the junction?</h2>
+            <p class="subtitle" id="roadTypeSubtitle">Select the road type you're entering</p>
+            
+            <div class="btn-group">
+                <button class="btn road-type-btn" onclick="selectRoadType('urban')" id="btnUrban">
+                    <span class="icon">🏙️</span>
+                    <span>Urban</span>
+                    <span class="speed" id="urbanSpeed">50 km/h</span>
+                </button>
+                <button class="btn road-type-btn" onclick="selectRoadType('rural')" id="btnRural">
+                    <span class="icon">🌄</span>
+                    <span>Rural</span>
+                    <span class="speed" id="ruralSpeed">90 km/h</span>
+                </button>
+                <button class="btn road-type-btn" onclick="selectRoadType('highway')" id="btnHighway">
+                    <span class="icon">🛣️</span>
+                    <span>Highway</span>
+                    <span class="speed" id="highwaySpeed">120 km/h</span>
+                </button>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn back" onclick="goToStep(3)">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 5: Exceptions -->
+        <div class="card" id="step5">
+            <h2>Any exceptions?</h2>
+            <p class="subtitle">Check if any of these apply (optional)</p>
+            
+            <div class="exception-list" id="exceptionList">
+                <label class="exception-item">
+                    <input type="checkbox" value="construction" onchange="updateException(this)">
+                    <span>Construction zone (Confidence 2)</span>
+                </label>
+                <label class="exception-item">
+                    <input type="checkbox" value="school" onchange="updateException(this)">
+                    <span>School zone (Confidence 6)</span>
+                </label>
+                <label class="exception-item">
+                    <input type="checkbox" value="electric" onchange="updateException(this)">
+                    <span>Electric sign present (Confidence 4)</span>
+                </label>
+                <label class="exception-item">
+                    <input type="checkbox" value="badDp" onchange="updateException(this)">
+                    <span>Bad DP / Missing connection (Confidence 3)</span>
+                </label>
+                <label class="exception-item">
+                    <input type="checkbox" value="mapEdge" onchange="updateException(this)">
+                    <span>Map edge (Confidence 5)</span>
+                </label>
+            </div>
+            
+            <div id="countryExceptions" class="info-box" style="display: none;">
+                <!-- Country-specific exceptions will be shown here -->
+            </div>
+            
+            <button class="btn" onclick="showResult()" style="width: 100%; background: #0052cc; color: white; border-color: #0052cc; margin-top: 15px;">
+                Show Result
+            </button>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn back" onclick="goBackFromExceptions()">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 6: Result -->
+        <div class="card" id="step6">
+            <div class="result-card">
+                <h3>Recommended Legal Speed</h3>
+                <div class="result-speed" id="resultSpeed">50</div>
+                <div class="result-unit">km/h</div>
+                <div class="result-confidence">
+                    <span class="confidence-badge" id="resultConfidence">Confidence: 0</span>
+                </div>
+            </div>
+            
+            <div class="summary">
+                <h4>Decision Summary</h4>
+                <div class="summary-item">
+                    <span class="summary-label">Explicit Sign</span>
+                    <span class="summary-value" id="summarySign">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Country</span>
+                    <span class="summary-value" id="summaryCountry">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Direction</span>
+                    <span class="summary-value" id="summaryDirection">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Propagation</span>
+                    <span class="summary-value" id="summaryPropagation">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Road Type</span>
+                    <span class="summary-value" id="summaryRoadType">-</span>
+                </div>
+                <div class="summary-item" id="summaryExceptionRow" style="display: none;">
+                    <span class="summary-label">Exception</span>
+                    <span class="summary-value" id="summaryException">-</span>
+                </div>
+            </div>
+            
+            <div class="info-box success">
+                <p><strong>Action:</strong> Set Legal Speed to <span id="actionSpeed">50</span> km/h with Confidence <span id="actionConfidence">0</span> on all affected DPs.</p>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn reset" onclick="resetWizard()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Country Data - All 26 countries
+        const countries = {
+            "Austria": {
+                straight: true, turn: false,
+                urban: 50, rural: 100, highway: 130,
+                exceptions: ["End of speed limit sign (Section 52)"]
+            },
+            "Belgium": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 120,
+                exceptions: []
+            },
+            "Croatia": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: ["City entrance signs", "Tunnels", "Bridges"]
+            },
+            "Czechia": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: []
+            },
+            "Denmark": {
+                straight: true, turn: false,
+                urban: 50, rural: 80, highway: 130,
+                exceptions: []
+            },
+            "Finland": {
+                straight: true, turn: false,
+                urban: 50, rural: 80, highway: 120,
+                exceptions: []
+            },
+            "France": {
+                straight: false, turn: false,
+                urban: 50, rural: 80, highway: 130,
+                exceptions: ["Pedestrian zone", "Speed zone", "Shared area", "CE signs on same pole"]
+            },
+            "Germany": {
+                straight: true, turn: false,
+                urban: 50, rural: 100, highway: 254,
+                exceptions: ["Distance supplementary sign", "Danger sign", "Fork", "Roundabout outside built-up area", "Strecke sign"]
+            },
+            "Greece": {
+                straight: true, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: []
+            },
+            "Hungary": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: ["Railway crossing", "Supplementary signs"]
+            },
+            "Ireland": {
+                straight: true, turn: true,
+                urban: 50, rural: 80, highway: 120,
+                exceptions: []
+            },
+            "Israel": {
+                straight: false, turn: false,
+                urban: 50, rural: 80, highway: 110,
+                exceptions: ["Speed limit zones", "Residential zones", "CE signs"]
+            },
+            "Italy": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: ["Zonal validity signs", "CE signs", "Specific conditions"]
+            },
+            "Japan": {
+                straight: true, turn: false,
+                urban: 60, rural: 60, highway: 100,
+                exceptions: []
+            },
+            "Latvia": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 110,
+                exceptions: ["Adjacent territory exits don't end zone"]
+            },
+            "Luxembourg": {
+                straight: true, turn: false,
+                urban: 50, rural: 90, highway: 130,
+                exceptions: []
+            },
+            "Netherlands": {
+                straight: false, turn: false,
+                urban: 50, rural: 80, highway: 130,
+                exceptions: ["Parallel road mergers don't end limit", "Exits don't end limit"]
+            },
+            "Norway": {
+                straight: true, turn: false,
+                urban: 50, rural: 80, highway: 110,
+                exceptions: []
+            },
+            "Poland": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 140,
+                exceptions: ["Dual carriageway left-only branch exception"]
+            },
+            "Portugal": {
+                straight: false, turn: false,
+                urban: 50, rural: 90, highway: 120,
+                exceptions: ["CE + speed sign combinations"]
+            },
+            "South Korea": {
+                straight: true, turn: false,
+                urban: 60, rural: 80, highway: 110,
+                exceptions: []
+            },
+            "Spain": {
+                straight: true, turn: false,
+                urban: 50, rural: 90, highway: 120,
+                exceptions: ["Non-priority road", "Danger sign on same pole", "SL signs next to CE sign apply to whole built-up area"]
+            },
+            "Sweden": {
+                straight: true, turn: true,
+                urban: 50, rural: 70, highway: 110,
+                exceptions: []
+            },
+            "Switzerland": {
+                straight: false, turn: false,
+                urban: 50, rural: 80, highway: 120,
+                exceptions: []
+            },
+            "United Kingdom": {
+                straight: true, turn: true,
+                urban: 48, rural: 96, highway: 112,
+                exceptions: [],
+                note: "Speeds in mph: Urban 30, Rural 60, Highway 70"
+            },
+            "United States": {
+                straight: true, turn: true,
+                urban: 40, rural: 88, highway: 104,
+                exceptions: ["Citywide signs", "Neighborhood signs", "Residential signs", "Advisory speed signs"],
+                note: "Speeds vary by state. Default: Urban 25mph, Rural 55mph, Highway 65mph"
+            }
+        };
+
+        // State
+        let state = {
+            explicitSign: null,
+            signSpeed: null,
+            country: null,
+            direction: null,
+            roadType: null,
+            exception: null,
+            confidence: 0
+        };
+
+        // Initialize country grid
+        function initCountryGrid() {
+            const grid = document.getElementById('countryGrid');
+            grid.innerHTML = '';
+            
+            Object.keys(countries).sort().forEach(country => {
+                const btn = document.createElement('button');
+                btn.className = 'btn country-btn';
+                btn.textContent = country;
+                btn.onclick = () => selectCountry(country);
+                grid.appendChild(btn);
+            });
+        }
+
+        // Navigation
+        function goToStep(step) {
+            // Hide all cards
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
+            
+            // Show target card
+            const stepId = step === 1 ? 'step1' : 
+                          step === '1b' ? 'step1b' :
+                          `step${step}`;
+            document.getElementById(stepId).classList.add('active');
+            
+            // Update progress bar
+            updateProgressBar(step);
+        }
+
+        function updateProgressBar(currentStep) {
+            const stepNum = currentStep === '1b' ? 1 : parseInt(currentStep);
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                const stepIndex = index + 1;
+                step.classList.remove('active', 'completed');
+                if (stepIndex < stepNum) {
+                    step.classList.add('completed');
+                } else if (stepIndex === stepNum) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Step 1: Explicit Sign
+        function selectExplicitSign(hasSign) {
+            state.explicitSign = hasSign;
+            
+            if (hasSign) {
+                goToStep('1b');
+            } else {
+                goToStep(2);
+            }
+        }
+
+        function submitSignSpeed() {
+            const speed = document.getElementById('signSpeedInput').value;
+            if (speed && parseInt(speed) > 0) {
+                state.signSpeed = parseInt(speed);
+                state.confidence = 0;
+                showFinalResult();
+            } else {
+                alert('Please enter a valid speed');
+            }
+        }
+
+        // Step 2: Country
+        function selectCountry(country) {
+            state.country = country;
+            
+            // Update UI
+            document.querySelectorAll('.country-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === country);
+            });
+            
+            // Update direction step with country info
+            const countryData = countries[country];
+            const propagationInfo = document.getElementById('propagationInfo');
+            
+            let infoHTML = `<p><strong>${country} propagation rules:</strong><br>`;
+            infoHTML += `Straight: ${countryData.straight ? '✅ Keep speed' : '❌ Reset to road type'}<br>`;
+            infoHTML += `Turn: ${countryData.turn ? '✅ Keep speed' : '❌ Reset to road type'}</p>`;
+            propagationInfo.innerHTML = infoHTML;
+            
+            // Update road type speeds
+            document.getElementById('urbanSpeed').textContent = `${countryData.urban} km/h`;
+            document.getElementById('ruralSpeed').textContent = `${countryData.rural} km/h`;
+            document.getElementById('highwaySpeed').textContent = countryData.highway === 254 ? 'Unlimited' : `${countryData.highway} km/h`;
+            
+            setTimeout(() => goToStep(3), 300);
+        }
+
+        // Step 3: Direction
+        function selectDirection(direction) {
+            state.direction = direction;
+            
+            const countryData = countries[state.country];
+            const propagates = direction === 'straight' ? countryData.straight : countryData.turn;
+            
+            // Update button styles
+            document.getElementById('btnStraight').classList.toggle('selected', direction === 'straight');
+            document.getElementById('btnTurn').classList.toggle('selected', direction === 'turn');
+            
+            if (propagates) {
+                // Speed propagates - keep entering speed
+                state.roadType = 'keep';
+                state.confidence = 0;
+                setTimeout(() => goToStep(5), 300);
+            } else {
+                // Speed resets - need to select road type
+                setTimeout(() => goToStep(4), 300);
+            }
+        }
+
+        // Step 4: Road Type
+        function selectRoadType(type) {
+            state.roadType = type;
+            state.confidence = 0;
+            
+            document.querySelectorAll('.road-type-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(`btn${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('selected');
+            
+            // Show country-specific exceptions
+            const countryData = countries[state.country];
+            const exceptionsDiv = document.getElementById('countryExceptions');
+            
+            if (countryData.exceptions && countryData.exceptions.length > 0) {
+                exceptionsDiv.innerHTML = `<p><strong>${state.country} specific exceptions:</strong><br>• ${countryData.exceptions.join('<br>• ')}</p>`;
+                exceptionsDiv.style.display = 'block';
+            } else {
+                exceptionsDiv.style.display = 'none';
+            }
+            
+            setTimeout(() => goToStep(5), 300);
+        }
+
+        // Step 5: Exceptions
+        function updateException(checkbox) {
+            if (checkbox.checked) {
+                // Uncheck others
+                document.querySelectorAll('.exception-list input').forEach(cb => {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+                state.exception = checkbox.value;
+                
+                // Set confidence based on exception
+                const confidenceMap = {
+                    'construction': 2,
+                    'school': 6,
+                    'electric': 4,
+                    'badDp': 3,
+                    'mapEdge': 5
+                };
+                state.confidence = confidenceMap[checkbox.value] || 0;
+            } else {
+                state.exception = null;
+                state.confidence = 0;
+            }
+        }
+
+        function goBackFromExceptions() {
+            const countryData = countries[state.country];
+            const propagates = state.direction === 'straight' ? countryData.straight : countryData.turn;
+            
+            if (propagates) {
+                goToStep(3);
+            } else {
+                goToStep(4);
+            }
+        }
+
+        // Show Result
+        function showResult() {
+            showFinalResult();
+        }
+
+        function showFinalResult() {
+            let speed;
+            let summaryData = {};
+            
+            if (state.explicitSign && state.signSpeed) {
+                // Explicit sign - use sign speed
+                speed = state.signSpeed;
+                summaryData = {
+                    sign: `Yes (${state.signSpeed} km/h)`,
+                    country: '-',
+                    direction: '-',
+                    propagation: '-',
+                    roadType: '-'
+                };
+            } else {
+                const countryData = countries[state.country];
+                const propagates = state.direction === 'straight' ? countryData.straight : countryData.turn;
+                
+                if (propagates) {
+                    speed = 'KEEP';
+                    summaryData = {
+                        sign: 'No',
+                        country: state.country,
+                        direction: state.direction === 'straight' ? 'Straight' : 'Turn',
+                        propagation: '✅ Keep entering speed',
+                        roadType: 'N/A (keep existing)'
+                    };
+                } else {
+                    const roadTypeMap = {
+                        'urban': countryData.urban,
+                        'rural': countryData.rural,
+                        'highway': countryData.highway
+                    };
+                    speed = roadTypeMap[state.roadType];
+                    summaryData = {
+                        sign: 'No',
+                        country: state.country,
+                        direction: state.direction === 'straight' ? 'Straight' : 'Turn',
+                        propagation: '❌ Reset to road type',
+                        roadType: state.roadType.charAt(0).toUpperCase() + state.roadType.slice(1)
+                    };
+                }
+            }
+            
+            // Update result display
+            const displaySpeed = speed === 'KEEP' ? 'KEEP' : (speed === 254 ? '∞' : speed);
+            document.getElementById('resultSpeed').textContent = displaySpeed;
+            document.getElementById('resultConfidence').textContent = `Confidence: ${state.confidence}`;
+            
+            // Update summary
+            document.getElementById('summarySign').textContent = summaryData.sign;
+            document.getElementById('summaryCountry').textContent = summaryData.country;
+            document.getElementById('summaryDirection').textContent = summaryData.direction;
+            document.getElementById('summaryPropagation').textContent = summaryData.propagation;
+            document.getElementById('summaryRoadType').textContent = summaryData.roadType;
+            
+            // Exception row
+            if (state.exception) {
+                document.getElementById('summaryExceptionRow').style.display = 'flex';
+                const exceptionNames = {
+                    'construction': 'Construction',
+                    'school': 'School zone',
+                    'electric': 'Electric sign',
+                    'badDp': 'Bad DP',
+                    'mapEdge': 'Map edge'
+                };
+                document.getElementById('summaryException').textContent = exceptionNames[state.exception];
+            } else {
+                document.getElementById('summaryExceptionRow').style.display = 'none';
+            }
+            
+            // Action text
+            const actionSpeed = speed === 'KEEP' ? 'entering' : (speed === 254 ? 'Unlimited (254)' : speed);
+            document.getElementById('actionSpeed').textContent = actionSpeed;
+            document.getElementById('actionConfidence').textContent = state.confidence;
+            
+            // Go to result
+            goToStep(6);
+            updateProgressBar(5);
+        }
+
+        // Reset
+        function resetWizard() {
+            state = {
+                explicitSign: null,
+                signSpeed: null,
+                country: null,
+                direction: null,
+                roadType: null,
+                exception: null,
+                confidence: 0
+            };
+            
+            // Reset UI
+            document.getElementById('signSpeedInput').value = '';
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.exception-list input').forEach(cb => cb.checked = false);
+            
+            goToStep(1);
+        }
+
+        // Initialize
+        initCountryGrid();
+    </script>
+</body>
+</html>

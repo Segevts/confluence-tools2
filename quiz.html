@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Ground Truth Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; min-height: 100vh; padding: 15px; }
+        .quiz-container { max-width: 700px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #172b4d; font-size: 22px; margin-bottom: 5px; }
+        .header p { color: #6b778c; font-size: 14px; }
+        
+        /* Progress Bar */
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 0 5px; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+        .progress-step::after { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; background: #dfe1e6; z-index: 0; }
+        .progress-step:last-child::after { display: none; }
+        .progress-circle { width: 24px; height: 24px; border-radius: 50%; background: #dfe1e6; color: #6b778c; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; z-index: 1; transition: all 0.3s; }
+        .progress-step.active .progress-circle { background: #0052cc; color: white; }
+        .progress-step.completed .progress-circle { background: #36b37e; color: white; }
+        .progress-step.completed::after { background: #36b37e; }
+        .progress-label { font-size: 10px; color: #6b778c; margin-top: 3px; text-align: center; }
+        
+        /* Cards */
+        .card { background: #f4f5f7; border-radius: 8px; padding: 25px; display: none; }
+        .card.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card h2 { color: #172b4d; font-size: 18px; margin-bottom: 8px; }
+        .card .subtitle { color: #6b778c; font-size: 14px; margin-bottom: 20px; }
+        
+        /* Buttons */
+        .btn { padding: 14px 18px; border: 2px solid #dfe1e6; border-radius: 6px; background: white; color: #172b4d; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; width: 100%; text-align: left; margin-bottom: 10px; }
+        .btn:hover { border-color: #0052cc; background: #f4f5f7; }
+        .btn.selected { border-color: #0052cc; background: #deebff; color: #0052cc; }
+        .btn.correct { border-color: #36b37e; background: #e3fcef; color: #006644; }
+        .btn.incorrect { border-color: #de350b; background: #ffebe6; color: #bf2600; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        
+        /* Topic Grid */
+        .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .topic-btn { padding: 20px 15px; border: 2px solid #dfe1e6; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .topic-btn:hover { border-color: #0052cc; background: #f4f5f7; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .topic-btn .icon { font-size: 28px; margin-bottom: 8px; }
+        .topic-btn .label { font-size: 14px; font-weight: 600; color: #172b4d; }
+        .topic-btn .count { font-size: 12px; color: #6b778c; margin-top: 4px; }
+        
+        /* Start Button */
+        .start-btn { background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%); color: white; border: none; padding: 18px 40px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: block; margin: 30px auto; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,82,204,0.4); }
+        
+        /* Question Progress */
+        .question-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .question-number { font-size: 14px; color: #6b778c; }
+        .question-number span { color: #0052cc; font-weight: 600; }
+        .score-display { font-size: 14px; color: #36b37e; font-weight: 500; }
+        
+        /* Question Text */
+        .question-text { font-size: 17px; color: #172b4d; margin-bottom: 25px; line-height: 1.5; }
+        
+        /* Options */
+        .options-container { margin-bottom: 20px; }
+        .option-btn { display: flex; align-items: center; padding: 14px 16px; }
+        .option-letter { width: 28px; height: 28px; border-radius: 50%; background: #dfe1e6; color: #6b778c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; margin-right: 12px; flex-shrink: 0; }
+        .option-btn.selected .option-letter { background: #0052cc; color: white; }
+        .option-btn.correct .option-letter { background: #36b37e; color: white; }
+        .option-btn.incorrect .option-letter { background: #de350b; color: white; }
+        .option-text { flex: 1; }
+        
+        /* Explanation Box */
+        .explanation-box { background: #deebff; border-left: 4px solid #0052cc; padding: 15px; border-radius: 0 6px 6px 0; margin: 20px 0; font-size: 14px; line-height: 1.5; }
+        .explanation-box.correct { background: #e3fcef; border-color: #36b37e; }
+        .explanation-box.incorrect { background: #ffebe6; border-color: #de350b; }
+        .explanation-box strong { display: block; margin-bottom: 5px; }
+        
+        /* Navigation */
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 15px; border-top: 1px solid #dfe1e6; }
+        .nav-btn { padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .nav-btn.primary { background: #0052cc; border: none; color: white; }
+        .nav-btn.primary:hover { background: #0747a6; }
+        .nav-btn.primary:disabled { background: #97a0af; cursor: not-allowed; }
+        .nav-btn.secondary { background: white; border: 1px solid #dfe1e6; color: #6b778c; }
+        .nav-btn.secondary:hover { background: #f4f5f7; }
+        
+        /* Results Card */
+        .result-card { background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .result-card h3 { font-size: 16px; margin-bottom: 15px; opacity: 0.9; }
+        .result-score { font-size: 56px; font-weight: 700; margin-bottom: 5px; }
+        .result-percent { font-size: 18px; opacity: 0.85; }
+        .result-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 25px; font-size: 14px; margin-top: 15px; }
+        .result-badge.excellent { background: rgba(54,179,126,0.3); }
+        .result-badge.good { background: rgba(255,196,0,0.3); }
+        .result-badge.needs-work { background: rgba(222,53,11,0.3); }
+        
+        /* Summary */
+        .summary { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .summary h4 { color: #172b4d; font-size: 14px; margin-bottom: 15px; }
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f4f5f7; font-size: 14px; }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-label { color: #6b778c; }
+        .summary-value { color: #172b4d; font-weight: 500; }
+        .summary-value.correct { color: #36b37e; }
+        .summary-value.incorrect { color: #de350b; }
+        
+        /* Review List */
+        .review-list { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; max-height: 300px; overflow-y: auto; }
+        .review-item { padding: 12px 0; border-bottom: 1px solid #f4f5f7; }
+        .review-item:last-child { border-bottom: none; }
+        .review-question { font-size: 13px; color: #172b4d; margin-bottom: 5px; }
+        .review-answer { font-size: 12px; display: flex; gap: 15px; }
+        .review-your { color: #6b778c; }
+        .review-your.correct { color: #36b37e; }
+        .review-your.incorrect { color: #de350b; }
+        .review-correct { color: #36b37e; }
+        
+        /* Welcome Screen */
+        .welcome-content { text-align: center; padding: 20px 0; }
+        .welcome-icon { font-size: 64px; margin-bottom: 20px; }
+        .welcome-text { color: #6b778c; font-size: 15px; line-height: 1.6; max-width: 500px; margin: 0 auto 25px; }
+        .feature-list { display: flex; justify-content: center; gap: 30px; margin: 25px 0; flex-wrap: wrap; }
+        .feature-item { text-align: center; }
+        .feature-item .icon { font-size: 24px; margin-bottom: 5px; }
+        .feature-item .text { font-size: 12px; color: #6b778c; }
+        
+        /* Responsive */
+        @media (max-width: 500px) { 
+            .topic-grid { grid-template-columns: 1fr; }
+            .feature-list { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="header">
+            <h1>Maps Ground Truth Quiz</h1>
+            <p>Test your knowledge of Legal Speed annotation rules</p>
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-step active" data-step="1"><div class="progress-circle">1</div><div class="progress-label">Start</div></div>
+            <div class="progress-step" data-step="2"><div class="progress-circle">2</div><div class="progress-label">Topic</div></div>
+            <div class="progress-step" data-step="3"><div class="progress-circle">3</div><div class="progress-label">Quiz</div></div>
+            <div class="progress-step" data-step="4"><div class="progress-circle">4</div><div class="progress-label">Results</div></div>
+        </div>
+        
+        <!-- Step 1: Welcome Screen -->
+        <div class="card active" id="welcomeCard">
+            <div class="welcome-content">
+                <div class="welcome-icon">📚</div>
+                <h2>Welcome to the Knowledge Quiz!</h2>
+                <p class="welcome-text">
+                    Test your understanding of Maps Ground Truth concepts including Legal Speed rules, 
+                    Speed Propagation, Confidence Values, and more. Each quiz contains 10 multiple-choice 
+                    questions from your selected topic.
+                </p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="icon">🎯</div>
+                        <div class="text">10 Questions</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="icon">📊</div>
+                        <div class="text">Instant Feedback</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="icon">💡</div>
+                        <div class="text">Explanations</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="icon">🏆</div>
+                        <div class="text">Score Tracking</div>
+                    </div>
+                </div>
+                <button class="start-btn" onclick="goToTopicSelection()">Start Creating a Quiz</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Topic Selection -->
+        <div class="card" id="topicCard">
+            <h2>Choose Your Quiz Topic</h2>
+            <p class="subtitle">Select a topic to test your knowledge</p>
+            <div class="topic-grid" id="topicGrid">
+                <!-- Topics will be populated by JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" onclick="goToWelcome()">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Quiz Questions -->
+        <div class="card" id="quizCard">
+            <div class="question-progress">
+                <div class="question-number">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">10</span></div>
+                <div class="score-display" id="scoreDisplay">Score: 0</div>
+            </div>
+            <div class="question-text" id="questionText">
+                <!-- Question will be populated by JavaScript -->
+            </div>
+            <div class="options-container" id="optionsContainer">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+            <div class="explanation-box" id="explanationBox" style="display: none;">
+                <!-- Explanation will be populated by JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" onclick="confirmQuit()">Quit Quiz</button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Results -->
+        <div class="card" id="resultsCard">
+            <div class="result-card">
+                <h3>Quiz Complete!</h3>
+                <div class="result-score" id="finalScore">8/10</div>
+                <div class="result-percent" id="finalPercent">80%</div>
+                <div class="result-badge" id="resultBadge">Great Job!</div>
+            </div>
+            <div class="summary">
+                <h4>Quiz Summary</h4>
+                <div class="summary-item">
+                    <span class="summary-label">Topic</span>
+                    <span class="summary-value" id="summaryTopic">Speed Propagation</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Correct Answers</span>
+                    <span class="summary-value correct" id="summaryCorrect">8</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Incorrect Answers</span>
+                    <span class="summary-value incorrect" id="summaryIncorrect">2</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Time Spent</span>
+                    <span class="summary-value" id="summaryTime">3m 45s</span>
+                </div>
+            </div>
+            <div class="review-list" id="reviewList">
+                <h4 style="margin-bottom: 15px; color: #172b4d; font-size: 14px;">Question Review</h4>
+                <!-- Review items will be populated by JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" onclick="goToTopicSelection()">Choose New Topic</button>
+                <button class="nav-btn primary" onclick="retryQuiz()">Retry This Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // QUESTION BANKS - Based on Confluence Content
+        // ============================================
+        
+        const questionBanks = {
+            "speed-propagation": {
+                name: "Speed Propagation Rules",
+                icon: "🚦",
+                description: "Country-specific junction behavior",
+                questions: [
+                    {
+                        question: "In Germany, does speed propagate when going STRAIGHT through a junction?",
+                        options: ["Yes", "No", "Only on highways", "Only in urban areas"],
+                        correct: 0,
+                        explanation: "Germany: Straight = Yes. The speed limit from before the junction continues when going straight through."
+                    },
+                    {
+                        question: "Which country is the ONLY one where speed propagates on TURNS at junctions?",
+                        options: ["Germany", "France", "Ireland", "UK"],
+                        correct: 2,
+                        explanation: "Ireland is the only country where speed propagates both when going straight (Yes) AND when turning (Yes)."
+                    },
+                    {
+                        question: "What happens to speed in France after passing through a junction?",
+                        options: ["Speed always continues", "Speed resets to road type default", "Speed increases by 10 km/h", "Speed is determined by the next sign only"],
+                        correct: 1,
+                        explanation: "France: Straight = No, Turn = No. The speed resets to the road type default after a junction in both directions."
+                    },
+                    {
+                        question: "Zone 30 signs propagate speed in which directions?",
+                        options: ["Only straight", "Only turns", "ALL directions until End of Zone", "Neither direction"],
+                        correct: 2,
+                        explanation: "Zone signs create a special 'slow road type' that propagates in ALL directions (straight AND turn) and continues until an 'End of Zone' sign."
+                    },
+                    {
+                        question: "In the Netherlands, does speed propagate when going straight through a junction?",
+                        options: ["Yes", "No", "Only on highways", "Depends on road type"],
+                        correct: 1,
+                        explanation: "Netherlands: Straight = No. A posted maximum speed limit ends after passing a side road, including T-junctions."
+                    },
+                    {
+                        question: "What does 'speed propagation = Yes' mean?",
+                        options: ["Speed must increase", "Speed limit continues past the junction", "Speed resets to default", "Speed sign is required"],
+                        correct: 1,
+                        explanation: "'Yes' (propagates) means the speed limit from before the junction continues after you pass through."
+                    },
+                    {
+                        question: "In Austria, what happens to speed when you TURN at a junction?",
+                        options: ["Speed propagates", "Speed resets to road type", "Speed doubles", "Speed is unchanged"],
+                        correct: 1,
+                        explanation: "Austria: Straight = Yes, Turn = No. When turning, the speed resets to the road type default."
+                    },
+                    {
+                        question: "Which of these countries has Straight = No for speed propagation?",
+                        options: ["Germany", "Denmark", "Belgium", "Norway"],
+                        correct: 2,
+                        explanation: "Belgium has Straight = No, Turn = No. Germany, Denmark, and Norway all have Straight = Yes."
+                    },
+                    {
+                        question: "In the UK, does speed propagate when going straight?",
+                        options: ["Yes", "No", "Only in London", "Only outside cities"],
+                        correct: 0,
+                        explanation: "UK: Straight = Yes. The speed limit continues when going straight through a junction."
+                    },
+                    {
+                        question: "What should you do when road type changes significantly at a junction (e.g., Highway to Urban)?",
+                        options: ["Keep the highway speed", "Use the urban road type speed", "Use 50 km/h always", "Use the average of both speeds"],
+                        correct: 1,
+                        explanation: "Even in 'Yes' propagation countries, reset to road type when the road type changes significantly. The urban speed applies, not the highway speed."
+                    },
+                    {
+                        question: "In Spain, does speed propagate when going straight?",
+                        options: ["Yes", "No", "Only in Catalonia", "Only on motorways"],
+                        correct: 1,
+                        explanation: "Spain: Straight = No, Turn = No. Speed resets to road type default after junctions."
+                    },
+                    {
+                        question: "What is the typical urban/built-up area default speed in most European countries?",
+                        options: ["30 km/h", "40 km/h", "50 km/h", "60 km/h"],
+                        correct: 2,
+                        explanation: "The typical urban/built-up area default speed is 50 km/h in most European countries."
+                    },
+                    {
+                        question: "In Japan, does speed propagate when going straight through a junction?",
+                        options: ["Yes", "No", "Only in Tokyo", "Only on expressways"],
+                        correct: 0,
+                        explanation: "Japan: Straight = Yes, Turn = No. Speed continues when going straight."
+                    },
+                    {
+                        question: "How should you treat entering and exiting a roundabout regarding speed propagation?",
+                        options: ["As a single junction", "As separate junctions", "Ignore roundabouts", "Always use 30 km/h"],
+                        correct: 1,
+                        explanation: "Treat entering and exiting a roundabout as separate junctions. Apply propagation rules at each point."
+                    },
+                    {
+                        question: "In Israel, does speed propagate at junctions?",
+                        options: ["Yes for straight, No for turn", "No for both straight and turn", "Yes for both", "Only on highways"],
+                        correct: 1,
+                        explanation: "Israel: Straight = No, Turn = No. Speed resets to road type default in both directions."
+                    },
+                    {
+                        question: "What exceptions might override normal propagation rules in Germany?",
+                        options: ["None", "Distance supplementary signs, danger signs, roundabouts outside built-up areas", "Weather conditions only", "Time of day only"],
+                        correct: 1,
+                        explanation: "Germany has exceptions including: distance supplementary signs, danger signs, forks, and roundabouts outside built-up areas."
+                    },
+                    {
+                        question: "Does an 'End of Speed Limit' sign reset the speed?",
+                        options: ["No, speed continues", "Yes, use road type speed after it", "Only in Germany", "Only on highways"],
+                        correct: 1,
+                        explanation: "Yes, an 'End of Speed Limit' sign ends the explicit speed. Use road type speed after it."
+                    },
+                    {
+                        question: "Do lane merges count as junctions for speed propagation?",
+                        options: ["Yes, always", "No, generally not", "Only on highways", "Only in urban areas"],
+                        correct: 1,
+                        explanation: "Generally no. Merging onto a highway doesn't reset the highway's speed - it's not considered a junction."
+                    }
+                ]
+            },
+            
+            "confidence-values": {
+                name: "Confidence Values",
+                icon: "🎯",
+                description: "When to use Confidence 0-8",
+                questions: [
+                    {
+                        question: "What confidence value should you use for a regular explicit speed limit sign?",
+                        options: ["0", "1", "4", "6"],
+                        correct: 0,
+                        explanation: "Confidence 0 is used for normal/explicit speed - speed from a regular speed limit sign."
+                    },
+                    {
+                        question: "What confidence value indicates a construction/road work zone?",
+                        options: ["1", "2", "3", "5"],
+                        correct: 1,
+                        explanation: "Confidence 2 indicates construction - temporary speed due to road work."
+                    },
+                    {
+                        question: "When should you use Confidence 3?",
+                        options: ["School zone", "Bad DP (gap/hole in the DP)", "Map edge", "Weather conditions"],
+                        correct: 1,
+                        explanation: "Confidence 3 is used when there's a Bad DP - when the DP has a gap or hole in it."
+                    },
+                    {
+                        question: "What confidence value is used for variable electronic speed signs?",
+                        options: ["2", "3", "4", "7"],
+                        correct: 2,
+                        explanation: "Confidence 4 indicates an electric sign - a variable electronic speed sign."
+                    },
+                    {
+                        question: "A DP starts at the edge of the map with no prior information. What confidence should you use?",
+                        options: ["0", "3", "5", "8"],
+                        correct: 2,
+                        explanation: "Confidence 5 indicates Map Edge - when the DP starts/ends at the map boundary with no prior information."
+                    },
+                    {
+                        question: "What confidence value is used for school zones?",
+                        options: ["2", "4", "6", "8"],
+                        correct: 2,
+                        explanation: "Confidence 6 is used for School Zone - speed near a school with a school zone sign."
+                    },
+                    {
+                        question: "When should you use Confidence 7?",
+                        options: ["Construction zone", "Electric sign", "Time-based speed (varies by time of day)", "Weather-based speed"],
+                        correct: 2,
+                        explanation: "Confidence 7 is used for time-based speeds - when speed varies by time of day."
+                    },
+                    {
+                        question: "What confidence value indicates weather-based speed limits?",
+                        options: ["5", "6", "7", "8"],
+                        correct: 3,
+                        explanation: "Confidence 8 indicates weather-based speed - when speed varies by weather conditions (rain, fog, etc.)."
+                    },
+                    {
+                        question: "If a sign shows a speed limit with rain symbol (only applies in bad weather), what confidence do you use?",
+                        options: ["0", "2", "7", "8"],
+                        correct: 3,
+                        explanation: "Confidence 8 is used for weather-based speed limits that only apply in specific weather conditions."
+                    },
+                    {
+                        question: "A speed sign shows '30' with a time range '22:00-06:00'. What confidence should you use?",
+                        options: ["0", "4", "7", "8"],
+                        correct: 2,
+                        explanation: "Confidence 7 is used for time-based signs - the speed varies depending on the time of day."
+                    },
+                    {
+                        question: "What is the valid range for confidence values in Legal Speed?",
+                        options: ["0-5", "0-8", "1-10", "0-10"],
+                        correct: 1,
+                        explanation: "Confidence values range from 0 to 8, each representing a specific type or condition."
+                    },
+                    {
+                        question: "When editing a DP, why is it important to update the Confidence value even if the speed remains unchanged?",
+                        options: ["It's not important", "To track which DPs have been reviewed", "To increase the speed limit", "To reset the map"],
+                        correct: 1,
+                        explanation: "Updating confidence ensures transparency and allows the client to identify which DPs have been reviewed and worked on."
+                    },
+                    {
+                        question: "What does Confidence 1 represent?",
+                        options: ["Normal speed sign", "Construction zone", "Confidence 1 is not used in the standard system", "School zone"],
+                        correct: 2,
+                        explanation: "Confidence 1 is not part of the standard confidence values (0, 2-8). The system uses 0 and then 2-8."
+                    },
+                    {
+                        question: "You see a temporary '50' sign at a construction site. What confidence do you use?",
+                        options: ["0", "2", "4", "5"],
+                        correct: 1,
+                        explanation: "Confidence 2 is used for construction zones - temporary speed limits due to road work."
+                    },
+                    {
+                        question: "An electronic sign displays variable speeds depending on traffic. What confidence?",
+                        options: ["0", "2", "4", "7"],
+                        correct: 2,
+                        explanation: "Confidence 4 is used for electric/variable signs that can display different speeds."
+                    }
+                ]
+            },
+            
+            "glossary": {
+                name: "Glossary & Concepts",
+                icon: "📖",
+                description: "Core terms and definitions",
+                questions: [
+                    {
+                        question: "What does 'DP' stand for?",
+                        options: ["Decision Point", "Drivable Path", "Data Point", "Direction Path"],
+                        correct: 1,
+                        explanation: "DP stands for Drivable Path - a line on the map representing a path a vehicle can drive."
+                    },
+                    {
+                        question: "What is the maximum allowed V_Value?",
+                        options: ["0.5", "0.8", "0.9", "1.0"],
+                        correct: 2,
+                        explanation: "V_Value cannot exceed 0.9 - this is a system limitation. 0.9 represents near the end of the DP."
+                    },
+                    {
+                        question: "What does V_Value represent?",
+                        options: ["Speed value", "Position along a DP where speed changes", "Visibility value", "Verification value"],
+                        correct: 1,
+                        explanation: "V_Value indicates the position along a DP where a speed change occurs, expressed as a decimal from 0.0 to 0.9."
+                    },
+                    {
+                        question: "What does 'GT' stand for in the context of Map Marker?",
+                        options: ["General Traffic", "Ground Truth", "GPS Tracking", "Geographic Terrain"],
+                        correct: 1,
+                        explanation: "GT stands for Ground Truth - the verified correct data, or the real-world imagery used for reference."
+                    },
+                    {
+                        question: "What does 'MM' stand for?",
+                        options: ["Map Marker", "Multiple Maps", "Main Menu", "Measurement Mode"],
+                        correct: 0,
+                        explanation: "MM stands for Map Marker - the web-based tool used to view and edit map data."
+                    },
+                    {
+                        question: "What is an 'Explicit Sign'?",
+                        options: ["A sign showing road type", "A traditional speed limit sign showing a number", "A sign with instructions", "An electronic sign"],
+                        correct: 1,
+                        explanation: "An Explicit Sign is a traditional speed limit sign showing a number (e.g., '50' in a red circle) that directly tells you the speed limit."
+                    },
+                    {
+                        question: "What does 'CE' sign indicate?",
+                        options: ["City Exit", "City Entrance", "Controlled Exit", "Central Entry"],
+                        correct: 1,
+                        explanation: "CE stands for City Entrance - a sign indicating you are entering a built-up area. Urban speed limits typically apply after this sign."
+                    },
+                    {
+                        question: "What does 'CX' sign indicate?",
+                        options: ["City Crossing", "City Exit", "Central Crossing", "Controlled Exit"],
+                        correct: 1,
+                        explanation: "CX stands for City Exit - a sign indicating you are leaving a built-up area."
+                    },
+                    {
+                        question: "What does 'HWE' stand for?",
+                        options: ["Highway Exit", "Highway Entrance", "High Way East", "Highway Edge"],
+                        correct: 1,
+                        explanation: "HWE stands for Highway Entrance - a sign indicating you are entering a highway/motorway."
+                    },
+                    {
+                        question: "What does a V_Value of 0.0 represent?",
+                        options: ["End of the DP", "Middle of the DP", "Start of the DP", "No data"],
+                        correct: 2,
+                        explanation: "V_Value 0.0 represents the start of the DP. Values go from 0.0 (start) to 0.9 (near end)."
+                    },
+                    {
+                        question: "What is '3D Clustering' (C3D)?",
+                        options: ["A navigation tool", "A Map Marker layer showing detected signs from cameras", "A 3D map view", "A clustering algorithm"],
+                        correct: 1,
+                        explanation: "3D Clustering is a Map Marker layer that shows detected signs and objects from vehicle cameras, used to verify if signs exist."
+                    },
+                    {
+                        question: "What does 'GT Wrong' mean?",
+                        options: ["Ground Truth is missing", "Our annotation differs from the actual correct speed - an error", "GPS is wrong", "The map is outdated"],
+                        correct: 1,
+                        explanation: "GT Wrong means when our annotation differs from the actual correct speed - it's an error we need to fix."
+                    },
+                    {
+                        question: "What is 'Implicit Sign / Road Type Speed'?",
+                        options: ["A hidden speed sign", "Speed limit implied by road type rather than a sign", "An electronic sign", "A temporary sign"],
+                        correct: 1,
+                        explanation: "Implicit Sign/Road Type Speed refers to speed limits implied by the road type rather than an explicit sign (e.g., Urban = 50 km/h)."
+                    },
+                    {
+                        question: "What formula converts MPH to km/h?",
+                        options: ["MPH × 0.6", "MPH × 1.6", "MPH ÷ 1.6", "MPH + 10"],
+                        correct: 1,
+                        explanation: "To convert MPH to km/h, multiply by 1.6 (or more precisely 1.60934)."
+                    },
+                    {
+                        question: "What does 'LS' stand for?",
+                        options: ["Lane Speed", "Legal Speed", "Local Sign", "Lane Section"],
+                        correct: 1,
+                        explanation: "LS stands for Legal Speed - the maximum speed limit in km/h that applies to a section of road."
+                    },
+                    {
+                        question: "What is a 'Supplementary Sign'?",
+                        options: ["A main speed limit sign", "A smaller sign below a speed sign providing additional conditions", "An electronic sign", "A temporary construction sign"],
+                        correct: 1,
+                        explanation: "A Supplementary Sign is a smaller sign placed below a speed limit sign, providing additional conditions (distance, time, weather)."
+                    },
+                    {
+                        question: "55 MPH converts to approximately how many km/h?",
+                        options: ["72 km/h", "80 km/h", "88 km/h", "96 km/h"],
+                        correct: 2,
+                        explanation: "55 MPH × 1.6 = 88 km/h. This is shown in the conversion chart."
+                    },
+                    {
+                        question: "What does 'RA' stand for?",
+                        options: ["Road Access", "Roundabout", "Restricted Area", "Road Authority"],
+                        correct: 1,
+                        explanation: "RA stands for Roundabout."
+                    }
+                ]
+            },
+            
+            "editing": {
+                name: "Editing Legal Speed",
+                icon: "✏️",
+                description: "V_Value and workflow",
+                questions: [
+                    {
+                        question: "What are the three editable fields when editing Legal Speed on a DP?",
+                        options: ["Speed, Distance, Time", "Value, V_Value, Confidence", "Start, End, Duration", "Width, Height, Depth"],
+                        correct: 1,
+                        explanation: "The three fields are: Value (speed in km/h), V_Value (position on DP), and Confidence (type/reliability)."
+                    },
+                    {
+                        question: "How do you select multiple DPs for bulk editing?",
+                        options: ["Shift + Click", "CTRL + Left Click", "Alt + Click", "Double click"],
+                        correct: 1,
+                        explanation: "Hold CTRL + Left Click to select multiple DPs. This allows you to choose more than one DP at a time."
+                    },
+                    {
+                        question: "What is the shortcut to copy the V_Value at a specific point on a DP?",
+                        options: ["Ctrl + C", "Alt + Shift + Left Click", "Ctrl + V", "Shift + Right Click"],
+                        correct: 1,
+                        explanation: "Use Alt + Shift + Left Click to copy the V_Value at a specific point on the DP."
+                    },
+                    {
+                        question: "After filling in bulk edit values, what button should you click to apply changes?",
+                        options: ["Save", "Apply", "Create Changeset Items and Apply", "Submit"],
+                        correct: 2,
+                        explanation: "Click 'Create Changeset Items and Apply' (grey button in Inspector) to apply the bulk edit changes."
+                    },
+                    {
+                        question: "Can a single DP have multiple speed changes?",
+                        options: ["No, only one speed per DP", "Yes, each with its own Value, V_Value, and Confidence", "Only in bulk mode", "Only on highways"],
+                        correct: 1,
+                        explanation: "Yes, a single DP can have multiple speed changes. Each change needs its own entry with Value, V_Value, and Confidence."
+                    },
+                    {
+                        question: "What is the first row V_Value default when adding speed to a DP?",
+                        options: ["0.5", "0.0", "0.9", "1.0"],
+                        correct: 1,
+                        explanation: "The first row V_Value default is 0.0, which marks the start of the DP."
+                    },
+                    {
+                        question: "What should you do BEFORE editing Legal Speed on a DP?",
+                        options: ["Delete all existing values", "Verify with Google Maps Street View", "Reset the map", "Close all other windows"],
+                        correct: 1,
+                        explanation: "Before editing, always verify with external sources like Google Maps Street View and 3D Clustering."
+                    },
+                    {
+                        question: "What indicates that a speed change is needed when looking at DPs?",
+                        options: ["The DP disappears", "Color changes on the DP", "The DP flashes", "Text appears on the DP"],
+                        correct: 1,
+                        explanation: "Color changes on DPs indicate different speeds - each color represents a different speed value."
+                    },
+                    {
+                        question: "When using Bulk Action, can you apply different speed values to selected DPs simultaneously?",
+                        options: ["Yes", "No, all selected DPs must get the same speed value", "Only with admin permission", "Only on highways"],
+                        correct: 1,
+                        explanation: "You can only use Bulk Action if all selected DPs will be assigned the same speed value."
+                    },
+                    {
+                        question: "In the Inspector tab, which field do you select for bulk editing Legal Speed?",
+                        options: ["speed_limit", "legal_speed", "max_speed", "road_speed"],
+                        correct: 1,
+                        explanation: "Under 'Field to update' in the Inspector tab, select 'legal_speed' for Legal Speed editing."
+                    },
+                    {
+                        question: "What does 'GT Mode' in Map Marker show?",
+                        options: ["GPS coordinates", "A simplified view optimized for annotation", "Traffic data", "Weather conditions"],
+                        correct: 1,
+                        explanation: "GT Mode shows a simplified view of the map optimized for annotation work."
+                    },
+                    {
+                        question: "What should you check if the color doesn't update after editing a DP?",
+                        options: ["Internet connection", "That you clicked 'Create changeset items and apply'", "Screen brightness", "Mouse settings"],
+                        correct: 1,
+                        explanation: "If color doesn't update, check that you clicked 'Create changeset items and apply' and try refreshing the map view."
+                    },
+                    {
+                        question: "How can you open another way to edit Legal Speed besides clicking on the DP?",
+                        options: ["Double-click", "Right-click on the DP", "Press Enter", "Use keyboard shortcuts only"],
+                        correct: 1,
+                        explanation: "Right-clicking on the DP opens a menu with options to add Legal Speed (EU), (USA), or at the exact cursor point."
+                    },
+                    {
+                        question: "What unit is used for speed in EU maps?",
+                        options: ["MPH", "km/h", "m/s", "fps"],
+                        correct: 1,
+                        explanation: "EU maps use km/h (kilometers per hour) for speed values."
+                    },
+                    {
+                        question: "Where can you see the number of selected DPs during bulk editing?",
+                        options: ["In the title bar", "Under 'Objects to Update' section", "In the status bar", "In a popup window"],
+                        correct: 1,
+                        explanation: "The number of selected DPs is shown under the 'Objects to Update' section in the Inspector."
+                    }
+                ]
+            },
+            
+            "junctions": {
+                name: "Junctions & Roundabouts",
+                icon: "🔄",
+                description: "Rules for speed at intersections",
+                questions: [
+                    {
+                        question: "If there is an explicit speed sign before/inside a junction, do you need to change the speed after the junction based on road type?",
+                        options: ["Yes, always", "No, use the sign speed", "Only in Germany", "Only for turns"],
+                        correct: 1,
+                        explanation: "If you have a sign before/inside the junction, you don't need to change the speed based on road type - use the sign speed."
+                    },
+                    {
+                        question: "If a junction has missing DPs in one of the entrances, is it still considered a junction?",
+                        options: ["No", "Yes", "Only in urban areas", "Depends on the country"],
+                        correct: 1,
+                        explanation: "Yes, if the junction has missing DPs in one of the entrances, it's still considered a junction."
+                    },
+                    {
+                        question: "In merge lane scenarios, when should the speed change from the ramp to the highway speed?",
+                        options: ["At the start of the ramp", "When the lane mark turns from solid to dashed", "At the end of the merge", "Never"],
+                        correct: 1,
+                        explanation: "Change the speed when the lane marks turn to dashed (indicating merge is possible), not when the merge is complete."
+                    },
+                    {
+                        question: "What is the general rule when a turn exits a highway and re-enters the same or another highway?",
+                        options: ["Reset to urban speed", "Maintain the DP's Legal Speed from before (unless there's a sign on the ramp)", "Always use 80 km/h", "Use the lower speed"],
+                        correct: 1,
+                        explanation: "Maintain the DP's Legal Speed and confidence as they were when exiting, unless there's an explicit speed sign on the ramp."
+                    },
+                    {
+                        question: "When a solid-dash lane marking appears, where should you start the speed tag?",
+                        options: ["At the end of the solid-dash", "At the beginning of the solid-dash", "At the middle", "After the merge"],
+                        correct: 1,
+                        explanation: "Start tagging at the beginning of the solid-dash line, where lane merging becomes possible."
+                    },
+                    {
+                        question: "In countries where speed doesn't propagate, what happens to speed after a junction?",
+                        options: ["Speed continues unchanged", "Speed resets to road type default", "Speed increases", "Speed is random"],
+                        correct: 1,
+                        explanation: "When speed doesn't propagate, it resets to the default speed defined by law for each road type."
+                    },
+                    {
+                        question: "What should you do when in doubt about junction speed rules?",
+                        options: ["Guess the speed", "Use conservative tagging or escalate to SME/Team Lead", "Leave it unchanged", "Use maximum speed"],
+                        correct: 1,
+                        explanation: "When in doubt, use conservative tagging or escalate the case to your SME or Team Lead."
+                    },
+                    {
+                        question: "At a roundabout, how many junctions should you consider for speed propagation?",
+                        options: ["One (the whole roundabout)", "Two (entering and exiting)", "Three", "None"],
+                        correct: 1,
+                        explanation: "Treat entering and exiting a roundabout as separate junctions - apply propagation rules at each point."
+                    },
+                    {
+                        question: "When should road type take priority over speed propagation?",
+                        options: ["Never", "When road type changes significantly (e.g., highway to urban)", "Only in Germany", "Only at night"],
+                        correct: 1,
+                        explanation: "In countries like Spain, lane count and road design may take precedence over speed propagation when road type changes significantly."
+                    },
+                    {
+                        question: "What should you compare when deciding if road type should override propagation?",
+                        options: ["Time of day only", "Lane count, road type, signs and surroundings", "Weather conditions", "Traffic volume"],
+                        correct: 1,
+                        explanation: "Always compare: lane count, road type, and signs/surroundings (urban/rural) of the road before and after the junction."
+                    },
+                    {
+                        question: "For merge lanes, what confidence should the changing point have?",
+                        options: ["Always Confidence 0", "Equal to the confidence of the DP you're merging into", "Always Confidence 5", "Always Confidence 2"],
+                        correct: 1,
+                        explanation: "The confidence at the changing point needs to be equal to the confidence of the highway/DP you're merging into."
+                    },
+                    {
+                        question: "What is 'Secondary Speed' used for in ramp cases?",
+                        options: ["Night driving only", "The implicit speed along the ramp until merging into the main road", "Emergency vehicles only", "Construction zones only"],
+                        correct: 1,
+                        explanation: "Secondary Speed in ramps is set based on the implicit speed (road type speed) and applies along the ramp until it merges into the main highway."
+                    }
+                ]
+            },
+            
+            "country-rules": {
+                name: "Country-Specific Rules",
+                icon: "🌍",
+                description: "Rules for specific countries",
+                questions: [
+                    {
+                        question: "What is the default urban speed limit in Germany?",
+                        options: ["30 km/h", "50 km/h", "60 km/h", "70 km/h"],
+                        correct: 1,
+                        explanation: "Germany's default urban speed limit is 50 km/h."
+                    },
+                    {
+                        question: "What does 'Zone 30' mean in Germany?",
+                        options: ["30 minute parking", "30 km/h speed limit zone", "30 meters to next sign", "30 cars maximum"],
+                        correct: 1,
+                        explanation: "Zone 30 indicates a 30 km/h speed limit zone that continues until an 'End of Zone' sign."
+                    },
+                    {
+                        question: "In Germany, what speed represents 'unlimited' (Autobahn without limit)?",
+                        options: ["999 km/h", "254 km/h", "200 km/h", "130 km/h"],
+                        correct: 1,
+                        explanation: "254 km/h is used in the system to represent unlimited speed (German Autobahn without speed limit)."
+                    },
+                    {
+                        question: "What is the typical highway speed in France?",
+                        options: ["110 km/h", "120 km/h", "130 km/h", "140 km/h"],
+                        correct: 2,
+                        explanation: "France's typical highway/motorway speed is 130 km/h."
+                    },
+                    {
+                        question: "What special urban speed options exist in France?",
+                        options: ["50 km/h only", "50 km/h standard, 30 km/h Zone/Paris, 20 km/h shared area", "No special options", "70 km/h and 50 km/h"],
+                        correct: 1,
+                        explanation: "France has: 50 km/h (standard), 30 km/h (Zone/Paris), and 20 km/h (zone de rencontre/shared area)."
+                    },
+                    {
+                        question: "In the UK, what unit are speed limits displayed in?",
+                        options: ["km/h", "MPH", "m/s", "knots"],
+                        correct: 1,
+                        explanation: "UK uses MPH (miles per hour) for speed limits. 30/60/70 mph are common limits."
+                    },
+                    {
+                        question: "What is the UK urban speed limit in km/h?",
+                        options: ["48 km/h", "50 km/h", "56 km/h", "64 km/h"],
+                        correct: 0,
+                        explanation: "UK urban limit is 30 mph, which converts to 48 km/h."
+                    },
+                    {
+                        question: "In the USA, what is a typical residential area speed limit?",
+                        options: ["25 mph (40 km/h)", "35 mph (56 km/h)", "45 mph (72 km/h)", "55 mph (88 km/h)"],
+                        correct: 0,
+                        explanation: "USA residential/urban areas typically have 25 mph (40 km/h) speed limits."
+                    },
+                    {
+                        question: "What is the default urban speed in Japan?",
+                        options: ["40 km/h", "50 km/h", "60 km/h", "70 km/h"],
+                        correct: 2,
+                        explanation: "Japan's default urban speed is 60 km/h, higher than most European countries."
+                    },
+                    {
+                        question: "What are the typical rural/highway speeds in Austria?",
+                        options: ["80/120 km/h", "100/130 km/h", "90/120 km/h", "100/140 km/h"],
+                        correct: 1,
+                        explanation: "Austria has 100 km/h for rural roads and 130 km/h for highways."
+                    },
+                    {
+                        question: "What exceptions exist for speed propagation in Croatia?",
+                        options: ["None", "City entrance signs, tunnels, bridges", "Weather only", "Time-based only"],
+                        correct: 1,
+                        explanation: "Croatia has exceptions for city entrance signs, tunnels, and bridges."
+                    },
+                    {
+                        question: "In Germany, what happens at roundabouts OUTSIDE built-up areas?",
+                        options: ["Speed propagates normally", "Speed is an exception and may reset", "Always 30 km/h", "Always unlimited"],
+                        correct: 1,
+                        explanation: "Roundabouts outside built-up areas are an exception in Germany where normal propagation rules may not apply."
+                    },
+                    {
+                        question: "What is Poland's highway speed limit?",
+                        options: ["120 km/h", "130 km/h", "140 km/h", "150 km/h"],
+                        correct: 2,
+                        explanation: "Poland has one of the higher highway limits at 140 km/h."
+                    },
+                    {
+                        question: "In Spain, what determines urban speed limit (30 vs 50 km/h)?",
+                        options: ["Time of day", "Number of lanes per direction", "Weather", "City size"],
+                        correct: 1,
+                        explanation: "Spain: 50 km/h for 2+ lanes per direction, 30 km/h for single lane, 20 km/h for single platform (shared road+sidewalk)."
+                    },
+                    {
+                        question: "What exception exists in the Netherlands for speed propagation?",
+                        options: ["None", "Parallel road mergers don't end posted speed", "Weather conditions", "School zones"],
+                        correct: 1,
+                        explanation: "In Netherlands, the merger of a parallel road with the main road does not constitute the end of the posted speed limit."
+                    }
+                ]
+            }
+        };
+
+        // ============================================
+        // QUIZ STATE
+        // ============================================
+        
+        let currentTopic = null;
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answers = [];
+        let quizStartTime = null;
+        let selectedAnswer = null;
+        let hasAnswered = false;
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        function init() {
+            populateTopicGrid();
+        }
+        
+        function populateTopicGrid() {
+            const grid = document.getElementById('topicGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, topic] of Object.entries(questionBanks)) {
+                const btn = document.createElement('button');
+                btn.className = 'topic-btn';
+                btn.innerHTML = `
+                    <div class="icon">${topic.icon}</div>
+                    <div class="label">${topic.name}</div>
+                    <div class="count">${topic.questions.length} questions</div>
+                `;
+                btn.onclick = () => startQuiz(key);
+                grid.appendChild(btn);
+            }
+        }
+        
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        
+        function updateProgressBar(step) {
+            document.querySelectorAll('.progress-step').forEach((el, i) => {
+                el.classList.remove('active', 'completed');
+                if (i + 1 < step) el.classList.add('completed');
+                else if (i + 1 === step) el.classList.add('active');
+            });
+        }
+        
+        function showCard(cardId) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.getElementById(cardId).classList.add('active');
+        }
+        
+        function goToWelcome() {
+            showCard('welcomeCard');
+            updateProgressBar(1);
+        }
+        
+        function goToTopicSelection() {
+            showCard('topicCard');
+            updateProgressBar(2);
+        }
+        
+        // ============================================
+        // QUIZ LOGIC
+        // ============================================
+        
+        function startQuiz(topicKey) {
+            currentTopic = topicKey;
+            const topic = questionBanks[topicKey];
+            
+            // Shuffle and pick 10 questions
+            currentQuestions = shuffleArray([...topic.questions]).slice(0, 10);
+            currentQuestionIndex = 0;
+            score = 0;
+            answers = [];
+            quizStartTime = new Date();
+            selectedAnswer = null;
+            hasAnswered = false;
+            
+            document.getElementById('totalQuestions').textContent = currentQuestions.length;
+            
+            showCard('quizCard');
+            updateProgressBar(3);
+            displayQuestion();
+        }
+        
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        function displayQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('explanationBox').style.display = 'none';
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('nextBtn').textContent = 
+                currentQuestionIndex === currentQuestions.length - 1 ? 'See Results' : 'Next Question';
+            
+            selectedAnswer = null;
+            hasAnswered = false;
+            
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn option-btn';
+                btn.innerHTML = `
+                    <span class="option-letter">${letters[index]}</span>
+                    <span class="option-text">${option}</span>
+                `;
+                btn.onclick = () => selectAnswer(index);
+                container.appendChild(btn);
+            });
+        }
+        
+        function selectAnswer(index) {
+            if (hasAnswered) return;
+            
+            hasAnswered = true;
+            selectedAnswer = index;
+            
+            const question = currentQuestions[currentQuestionIndex];
+            const isCorrect = index === question.correct;
+            
+            if (isCorrect) score++;
+            
+            answers.push({
+                question: question.question,
+                selected: index,
+                correct: question.correct,
+                isCorrect: isCorrect
+            });
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === question.correct) {
+                    btn.classList.add('correct');
+                } else if (i === index && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Show explanation
+            const explanationBox = document.getElementById('explanationBox');
+            explanationBox.className = `explanation-box ${isCorrect ? 'correct' : 'incorrect'}`;
+            explanationBox.innerHTML = `
+                <strong>${isCorrect ? '✓ Correct!' : '✗ Incorrect'}</strong>
+                ${question.explanation}
+            `;
+            explanationBox.style.display = 'block';
+            
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
+        }
+        
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex >= currentQuestions.length) {
+                showResults();
+            } else {
+                displayQuestion();
+            }
+        }
+        
+        function showResults() {
+            const topic = questionBanks[currentTopic];
+            const total = currentQuestions.length;
+            const percent = Math.round((score / total) * 100);
+            const endTime = new Date();
+            const timeDiff = Math.floor((endTime - quizStartTime) / 1000);
+            const minutes = Math.floor(timeDiff / 60);
+            const seconds = timeDiff % 60;
+            
+            document.getElementById('finalScore').textContent = `${score}/${total}`;
+            document.getElementById('finalPercent').textContent = `${percent}%`;
+            document.getElementById('summaryTopic').textContent = topic.name;
+            document.getElementById('summaryCorrect').textContent = score;
+            document.getElementById('summaryIncorrect').textContent = total - score;
+            document.getElementById('summaryTime').textContent = `${minutes}m ${seconds}s`;
+            
+            // Set badge
+            const badge = document.getElementById('resultBadge');
+            if (percent >= 80) {
+                badge.textContent = 'Excellent!';
+                badge.className = 'result-badge excellent';
+            } else if (percent >= 60) {
+                badge.textContent = 'Good Job!';
+                badge.className = 'result-badge good';
+            } else {
+                badge.textContent = 'Keep Practicing!';
+                badge.className = 'result-badge needs-work';
+            }
+            
+            // Populate review list
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '<h4 style="margin-bottom: 15px; color: #172b4d; font-size: 14px;">Question Review</h4>';
+            
+            answers.forEach((answer, i) => {
+                const question = currentQuestions[i];
+                const item = document.createElement('div');
+                item.className = 'review-item';
+                item.innerHTML = `
+                    <div class="review-question">${i + 1}. ${answer.question}</div>
+                    <div class="review-answer">
+                        <span class="review-your ${answer.isCorrect ? 'correct' : 'incorrect'}">
+                            Your answer: ${question.options[answer.selected]}
+                        </span>
+                        ${!answer.isCorrect ? `<span class="review-correct">Correct: ${question.options[answer.correct]}</span>` : ''}
+                    </div>
+                `;
+                reviewList.appendChild(item);
+            });
+            
+            showCard('resultsCard');
+            updateProgressBar(4);
+        }
+        
+        function retryQuiz() {
+            startQuiz(currentTopic);
+        }
+        
+        function confirmQuit() {
+            if (confirm('Are you sure you want to quit? Your progress will be lost.')) {
+                goToTopicSelection();
+            }
+        }
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

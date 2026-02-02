@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junction Workflow - Legal Speed Decision Tree</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        .version {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        /* Decision Tree Styles */
+        .decision-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+        
+        .node {
+            position: relative;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        /* Entry Node - Purple/Blue gradient */
+        .node.entry {
+            background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+            border: 2px solid #818cf8;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        /* Decision Nodes - Yellow/Orange */
+        .node.decision {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: 2px solid #fbbf24;
+            color: #1a1a2e;
+            transform: rotate(0deg);
+        }
+        
+        .node.decision::before {
+            content: '?';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #d97706;
+            font-size: 1.2rem;
+        }
+        
+        /* Action Nodes - Green */
+        .node.action {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 2px solid #34d399;
+        }
+        
+        /* Reference Nodes - Blue */
+        .node.reference {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid #60a5fa;
+        }
+        
+        /* Warning Nodes - Red */
+        .node.warning {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: 2px solid #f87171;
+        }
+        
+        /* Connector Lines */
+        .connector {
+            width: 3px;
+            height: 40px;
+            background: linear-gradient(to bottom, #60a5fa, #818cf8);
+        }
+        
+        .branch-container {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            position: relative;
+        }
+        
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .branch-label {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .branch-label.yes {
+            background: #10b981;
+        }
+        
+        .branch-label.no {
+            background: #ef4444;
+        }
+        
+        /* Horizontal connector for branches */
+        .h-connector {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #818cf8, #60a5fa);
+        }
+        
+        /* Section Dividers */
+        .section {
+            width: 100%;
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #e2e8f0;
+            font-size: 1.5rem;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(124, 58, 237, 0.3);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+        
+        .legend-color.entry { background: linear-gradient(135deg, #7c3aed, #2563eb); }
+        .legend-color.decision { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .legend-color.action { background: linear-gradient(135deg, #10b981, #059669); }
+        .legend-color.reference { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .legend-color.warning { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        /* Country Groups */
+        .country-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .country-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid;
+        }
+        
+        .country-card.both-yes {
+            border-color: #10b981;
+        }
+        
+        .country-card.straight-yes {
+            border-color: #f59e0b;
+        }
+        
+        .country-card.both-no {
+            border-color: #ef4444;
+        }
+        
+        .country-card h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .country-card .countries {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        /* Flow Diagram SVG Container */
+        .flow-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        
+        .flow-svg {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background: #1e293b;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Roundabout Section */
+        .roundabout-section {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(37, 99, 235, 0.1));
+            border: 2px dashed #7c3aed;
+        }
+        
+        .roundabout-rules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .roundabout-rule {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border-left: 3px solid #7c3aed;
+        }
+        
+        /* Confidence Badge */
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .conf-0 { background: #6b7280; }
+        .conf-2 { background: #f59e0b; color: #000; }
+        .conf-3 { background: #8b5cf6; }
+        .conf-4 { background: #06b6d4; }
+        .conf-5 { background: #ec4899; }
+        .conf-6 { background: #84cc16; color: #000; }
+        .conf-7 { background: #f97316; }
+        .conf-8 { background: #14b8a6; }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .node {
+                border: 2px solid #333;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Junction Workflow Decision Tree</h1>
+            <p class="subtitle">Legal Speed Annotation Guide for Map Marker</p>
+            <p class="version">Version 1.0 | Last Updated: February 2026</p>
+        </header>
+
+        <!-- Main Decision Tree -->
+        <div class="section">
+            <h2>Main Decision Flow</h2>
+            
+            <div class="decision-tree">
+                <!-- Entry Point -->
+                <div class="node entry" id="entry">
+                    <strong>START</strong><br>
+                    Approaching a Junction
+                </div>
+                
+                <div class="connector"></div>
+                
+                <!-- Decision 1: Explicit Signs -->
+                <div class="node decision tooltip" id="explicit-check">
+                    Is there an <strong>explicit speed sign</strong><br>
+                    before/at the junction?
+                    <span class="tooltip-text">Look for posted speed limit signs near the junction entrance</span>
+                </div>
+                
+                <div class="branch-container">
+                    <div class="h-connector"></div>
+                    
+                    <!-- YES Branch -->
+                    <div class="branch">
+                        <div class="branch-label yes">YES</div>
+                        <div class="connector"></div>
+                        <div class="node action">
+                            <strong>Use explicit sign speed</strong><br>
+                            Apply the posted speed limit<br>
+                            <span class="confidence-badge conf-0">Confidence: 0</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node reference">
+                            Go to <strong>Exception Check</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- NO Branch -->
+                    <div class="branch">
+                        <div class="branch-label no">NO</div>
+                        <div class="connector"></div>
+                        <div class="node decision">
+                            Check <strong>Speed Propagation</strong><br>
+                            rules for this country
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Country Propagation Section -->
+        <div class="section">
+            <h2>Speed Propagation by Country</h2>
+            <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">
+                Determines whether speed resets after a junction based on country-specific rules
+            </p>
+            
+            <div class="decision-tree">
+                <div class="node decision">
+                    What <strong>country</strong> is this map in?<br>
+                    <small>(Check propagation rules below)</small>
+                </div>
+            </div>
+            
+            <div class="country-group">
+                <div class="country-card both-yes">
+                    <h4>Propagation: YES (Both Straight & Turn)</h4>
+                    <p class="countries">
+                        <strong>Ireland</strong>, <strong>Sweden</strong>, <strong>United Kingdom</strong>, <strong>United States</strong>
+                    </p>
+                    <p style="margin-top: 10px; color: #10b981; font-size: 0.9rem;">
+                        → Keep the speed that enters the junction
+                    </p>
+                </div>
+                
+                <div class="country-card straight-yes">
+                    <h4>Propagation: YES (Straight) / NO (Turn)</h4>
+                    <p class="countries">
+                        <strong>Germany</strong>, <strong>Austria</strong>, <strong>Denmark</strong>, <strong>Finland</strong>, 
+                        <strong>Greece</strong>, <strong>Japan</strong>, <strong>Luxembourg</strong>, <strong>Norway</strong>, 
+                        <strong>South Korea</strong>, <strong>Spain</strong>
+                    </p>
+                    <p style="margin-top: 10px; color: #f59e0b; font-size: 0.9rem;">
+                        → Straight: Keep speed | Turn: Reset to road type
+                    </p>
+                </div>
+                
+                <div class="country-card both-no">
+                    <h4>Propagation: NO (Both Straight & Turn)</h4>
+                    <p class="countries">
+                        <strong>Belgium</strong>, <strong>Croatia</strong>, <strong>Czechia</strong>, <strong>France</strong>, 
+                        <strong>Hungary</strong>, <strong>Israel</strong>, <strong>Italy</strong>, <strong>Latvia</strong>, 
+                        <strong>Netherlands</strong>, <strong>Poland</strong>, <strong>Portugal</strong>, <strong>Switzerland</strong>
+                    </p>
+                    <p style="margin-top: 10px; color: #ef4444; font-size: 0.9rem;">
+                        → Reset to road type speed after junction
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction Decision -->
+        <div class="section">
+            <h2>Direction of Travel Decision</h2>
+            
+            <div class="decision-tree">
+                <div class="node decision">
+                    Are you going <strong>STRAIGHT</strong><br>
+                    or <strong>TURNING</strong>?
+                </div>
+                
+                <div class="branch-container">
+                    <div class="h-connector"></div>
+                    
+                    <div class="branch">
+                        <div class="branch-label" style="background: #3b82f6;">STRAIGHT</div>
+                        <div class="connector"></div>
+                        <div class="node decision" style="max-width: 300px;">
+                            Does country have<br>
+                            <strong>Straight Propagation = YES</strong>?
+                        </div>
+                        <div class="branch-container" style="gap: 30px;">
+                            <div class="branch">
+                                <div class="branch-label yes">YES</div>
+                                <div class="node action" style="font-size: 0.9rem;">
+                                    <strong>Keep entering speed</strong>
+                                </div>
+                            </div>
+                            <div class="branch">
+                                <div class="branch-label no">NO</div>
+                                <div class="node warning" style="font-size: 0.9rem;">
+                                    <strong>Reset to road type</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="branch-label" style="background: #8b5cf6;">TURN</div>
+                        <div class="connector"></div>
+                        <div class="node decision" style="max-width: 300px;">
+                            Does country have<br>
+                            <strong>Turn Propagation = YES</strong>?
+                        </div>
+                        <div class="branch-container" style="gap: 30px;">
+                            <div class="branch">
+                                <div class="branch-label yes">YES</div>
+                                <div class="node action" style="font-size: 0.9rem;">
+                                    <strong>Keep entering speed</strong>
+                                </div>
+                            </div>
+                            <div class="branch">
+                                <div class="branch-label no">NO</div>
+                                <div class="node warning" style="font-size: 0.9rem;">
+                                    <strong>Reset to road type</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Road Type Determination -->
+        <div class="section">
+            <h2>Road Type Determination</h2>
+            <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">
+                When propagation = NO, determine the default speed based on road type after the junction
+            </p>
+            
+            <div class="decision-tree">
+                <div class="node decision">
+                    What is the <strong>road type</strong><br>
+                    AFTER the junction?
+                </div>
+                
+                <div class="branch-container" style="gap: 40px; margin-top: 30px;">
+                    <div class="branch">
+                        <div class="node reference" style="background: linear-gradient(135deg, #64748b, #475569);">
+                            <strong>Urban / Built-up Area</strong><br>
+                            <small>City entrance sign, dense buildings</small>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node action">
+                            Use <strong>urban default</strong><br>
+                            <small>(typically 50 km/h in EU)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="node reference" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                            <strong>Rural / Outside Built-up</strong><br>
+                            <small>Open roads, countryside</small>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node action">
+                            Use <strong>rural default</strong><br>
+                            <small>(typically 80-100 km/h)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="node reference" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                            <strong>Highway / Motorway</strong><br>
+                            <small>HWE signs, controlled access</small>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node action">
+                            Use <strong>highway default</strong><br>
+                            <small>(typically 120-130 km/h or unlimited)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exception Checks -->
+        <div class="section">
+            <h2>Exception Checks</h2>
+            <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">
+                Before finalizing, check if any exceptions apply
+            </p>
+            
+            <div class="decision-tree">
+                <div class="node warning" style="max-width: 500px;">
+                    <strong>Check for Exceptions</strong><br>
+                    Any of these may override the standard propagation rules
+                </div>
+            </div>
+            
+            <div class="country-group" style="margin-top: 30px;">
+                <div class="country-card" style="border-color: #f59e0b;">
+                    <h4>Zone Signs</h4>
+                    <p class="countries">
+                        • Pedestrian zones (min 20 km/h)<br>
+                        • Residential zones (min 20 km/h)<br>
+                        • Speed limit zones<br>
+                        • School zones
+                    </p>
+                    <span class="confidence-badge conf-6">Conf 6 for School</span>
+                </div>
+                
+                <div class="country-card" style="border-color: #ef4444;">
+                    <h4>Danger Signs on Same Pole</h4>
+                    <p class="countries">
+                        • Speed limit with danger warning<br>
+                        • Construction warnings<br>
+                        • Road hazard indicators
+                    </p>
+                    <span class="confidence-badge conf-2">Conf 2 for Construction</span>
+                </div>
+                
+                <div class="country-card" style="border-color: #3b82f6;">
+                    <h4>City Entrance/Exit Signs</h4>
+                    <p class="countries">
+                        • CE signs reset to urban default<br>
+                        • City exit (CX) may reset to rural<br>
+                        • Some countries: CE + speed sign = whole area
+                    </p>
+                    <span class="confidence-badge conf-0">Conf 0 (Implicit)</span>
+                </div>
+                
+                <div class="country-card" style="border-color: #8b5cf6;">
+                    <h4>Special Conditions</h4>
+                    <p class="countries">
+                        • Time-based restrictions<br>
+                        • Weather-based signs<br>
+                        • Electric/variable signs
+                    </p>
+                    <span class="confidence-badge conf-7">Conf 7 Time</span>
+                    <span class="confidence-badge conf-8">Conf 8 Weather</span>
+                    <span class="confidence-badge conf-4">Conf 4 Electric</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roundabout Section -->
+        <div class="section roundabout-section">
+            <h2>Roundabout Special Rules</h2>
+            <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">
+                Same propagation rules apply, with additional considerations
+            </p>
+            
+            <div class="roundabout-rules">
+                <div class="roundabout-rule">
+                    <strong>Entry Speed Rule</strong>
+                    <p style="color: #94a3b8; margin-top: 8px;">
+                        Each speed entering the roundabout becomes the new speed inside the RA at that point
+                    </p>
+                </div>
+                
+                <div class="roundabout-rule">
+                    <strong>Speed Changes Inside RA</strong>
+                    <p style="color: #94a3b8; margin-top: 8px;">
+                        Keep each entry speed until you encounter a new speed from another entry point
+                    </p>
+                </div>
+                
+                <div class="roundabout-rule">
+                    <strong>Exit Propagation</strong>
+                    <p style="color: #94a3b8; margin-top: 8px;">
+                        Same propagation rules apply when exiting the roundabout
+                    </p>
+                </div>
+                
+                <div class="roundabout-rule" style="border-color: #ef4444;">
+                    <strong>Complex RAs (3+ speeds)</strong>
+                    <p style="color: #94a3b8; margin-top: 8px;">
+                        Escalate to Team Lead for roundabouts with 3 or more different entry speeds
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Assignment -->
+        <div class="section">
+            <h2>Final Speed Assignment</h2>
+            
+            <div class="decision-tree">
+                <div class="node entry" style="max-width: 500px;">
+                    <strong>Apply Determined Speed</strong><br>
+                    Set the Legal Speed value in the DP
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="node decision">
+                    Select appropriate <strong>Confidence</strong> value<br>
+                    based on the determination method
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="node action" style="max-width: 500px;">
+                    <strong>Update all affected DPs</strong><br>
+                    Change speed at the point where new road section starts<br>
+                    (not inside the turn/junction)
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Tables -->
+        <div class="section">
+            <h2>Quick Reference Tables</h2>
+            
+            <h3 style="margin: 20px 0 15px; color: #e2e8f0;">Speed Propagation Chart</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Country</th>
+                        <th>Straight</th>
+                        <th>Turn</th>
+                        <th>Notable Exceptions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Austria</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Belgium</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Croatia</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>City entrance, tunnels, bridges</td></tr>
+                    <tr><td>Czechia</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Denmark</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Finland</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>France</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Pedestrian zone, speed zone, shared area, CE signs</td></tr>
+                    <tr><td>Germany</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>Distance supp, danger sign, fork, RDB outside built-up</td></tr>
+                    <tr><td>Greece</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Hungary</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Railway crossing, supplementary signs</td></tr>
+                    <tr><td>Ireland</td><td style="color: #10b981;">Yes</td><td style="color: #10b981;">Yes</td><td>-</td></tr>
+                    <tr><td>Israel</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Speed limit zones, residential zones, CE signs</td></tr>
+                    <tr><td>Italy</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Zonal validity signs, CE signs</td></tr>
+                    <tr><td>Japan</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Latvia</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Adjacent territory exits don't end zone</td></tr>
+                    <tr><td>Luxembourg</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Netherlands</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Parallel road mergers, exits don't end limit</td></tr>
+                    <tr><td>Norway</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Poland</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>Dual carriageway left-only branch exception</td></tr>
+                    <tr><td>Portugal</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>CE + speed sign combinations</td></tr>
+                    <tr><td>South Korea</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>Spain</td><td style="color: #10b981;">Yes</td><td style="color: #ef4444;">No</td><td>Non-priority road, danger sign on same pole</td></tr>
+                    <tr><td>Sweden</td><td style="color: #10b981;">Yes</td><td style="color: #10b981;">Yes</td><td>-</td></tr>
+                    <tr><td>Switzerland</td><td style="color: #ef4444;">No</td><td style="color: #ef4444;">No</td><td>-</td></tr>
+                    <tr><td>United Kingdom</td><td style="color: #10b981;">Yes</td><td style="color: #10b981;">Yes</td><td>-</td></tr>
+                    <tr><td>United States</td><td style="color: #10b981;">Yes</td><td style="color: #10b981;">Yes</td><td>Citywide, neighborhood, residential, advisory signs</td></tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin: 30px 0 15px; color: #e2e8f0;">Confidence Values</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th>Meaning</th>
+                        <th>When to Use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="confidence-badge conf-0">0</span></td>
+                        <td>Default / Base value</td>
+                        <td>Explicit sign present, normal propagation</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-2">2</span></td>
+                        <td>Construction</td>
+                        <td>Construction zone with temporary speed limits</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-3">3</span></td>
+                        <td>Bad DP</td>
+                        <td>Missing DP connection, gap in path</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-4">4</span></td>
+                        <td>Electric sign</td>
+                        <td>Variable/electronic speed signs (don't use for LS)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-5">5</span></td>
+                        <td>Map edge</td>
+                        <td>DP starts with no prior information</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-6">6</span></td>
+                        <td>School zone</td>
+                        <td>School zone sign with explicit speed</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-7">7</span></td>
+                        <td>Time-based</td>
+                        <td>Speed varies by time of day</td>
+                    </tr>
+                    <tr>
+                        <td><span class="confidence-badge conf-8">8</span></td>
+                        <td>Weather-based</td>
+                        <td>Speed varies by weather conditions</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color entry"></div>
+                <span>Entry/Exit Point</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color decision"></div>
+                <span>Decision (Question)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color action"></div>
+                <span>Action (Apply Speed)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color reference"></div>
+                <span>Reference (Check Rules)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color warning"></div>
+                <span>Warning/Reset</span>
+            </div>
+        </div>
+        
+        <footer style="text-align: center; margin-top: 40px; padding: 20px; color: #64748b; font-size: 0.9rem;">
+            <p>Junction Workflow Decision Tree for Legal Speed Annotation</p>
+            <p>Based on Legal Speed Map-Marker Confluence Documentation</p>
+            <p style="margin-top: 10px;">Use this as a visual reference when creating the Figma design</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add interactivity - clicking nodes highlights the path
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', function() {
+                // Remove highlight from all nodes
+                document.querySelectorAll('.node').forEach(n => n.style.outline = 'none');
+                // Highlight clicked node
+                this.style.outline = '3px solid #fff';
+                this.style.outlineOffset = '3px';
+            });
+        });
+    </script>
+</body>
+</html>

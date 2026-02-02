@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Builder - Maps Ground Truth</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; min-height: 100vh; padding: 15px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #172b4d; font-size: 22px; margin-bottom: 5px; }
+        .header p { color: #6b778c; font-size: 14px; }
+        
+        /* Progress Steps */
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 0 10px; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+        .progress-step::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 3px; background: #dfe1e6; z-index: 0; }
+        .progress-step:last-child::after { display: none; }
+        .progress-circle { width: 30px; height: 30px; border-radius: 50%; background: #dfe1e6; color: #6b778c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; z-index: 1; transition: all 0.3s; }
+        .progress-step.active .progress-circle { background: #0052cc; color: white; }
+        .progress-step.completed .progress-circle { background: #36b37e; color: white; }
+        .progress-step.completed::after { background: #36b37e; }
+        .progress-label { font-size: 11px; color: #6b778c; margin-top: 5px; font-weight: 500; }
+        .progress-step.active .progress-label { color: #0052cc; }
+        
+        /* Cards */
+        .card { background: #f4f5f7; border-radius: 10px; padding: 25px; display: none; }
+        .card.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card h2 { color: #172b4d; font-size: 18px; margin-bottom: 8px; }
+        .card .subtitle { color: #6b778c; font-size: 14px; margin-bottom: 20px; }
+        
+        /* Topic Selection */
+        .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .topic-btn { padding: 20px; border: 2px solid #dfe1e6; border-radius: 10px; background: white; cursor: pointer; transition: all 0.2s; text-align: left; }
+        .topic-btn:hover { border-color: #0052cc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .topic-btn.selected { border-color: #0052cc; background: #deebff; }
+        .topic-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .topic-icon { font-size: 28px; }
+        .topic-name { font-size: 15px; font-weight: 600; color: #172b4d; }
+        .topic-desc { font-size: 12px; color: #6b778c; margin-bottom: 8px; }
+        .topic-count { font-size: 11px; color: #0052cc; font-weight: 500; }
+        
+        /* Question Preview */
+        .question-list { max-height: 450px; overflow-y: auto; margin-bottom: 20px; }
+        .question-item { background: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #0052cc; }
+        .question-item.included { border-left-color: #36b37e; }
+        .question-item.excluded { border-left-color: #dfe1e6; opacity: 0.6; }
+        .question-number { font-size: 12px; color: #0052cc; font-weight: 600; margin-bottom: 5px; }
+        .question-text { font-size: 14px; color: #172b4d; margin-bottom: 10px; line-height: 1.4; }
+        .question-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .option-preview { font-size: 12px; padding: 6px 10px; background: #f4f5f7; border-radius: 4px; color: #6b778c; }
+        .option-preview.correct { background: #e3fcef; color: #006644; font-weight: 500; }
+        .question-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f4f5f7; }
+        .question-toggle input { width: 18px; height: 18px; cursor: pointer; }
+        .question-toggle label { font-size: 12px; color: #6b778c; cursor: pointer; }
+        
+        /* Quiz Settings */
+        .settings-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .settings-section h3 { font-size: 14px; color: #172b4d; margin-bottom: 15px; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f4f5f7; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 13px; color: #6b778c; }
+        .setting-value { font-size: 13px; color: #172b4d; font-weight: 500; }
+        .setting-input { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 5px; font-size: 13px; width: 200px; }
+        .setting-input:focus { outline: none; border-color: #0052cc; }
+        
+        /* Buttons */
+        .btn { padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: #0052cc; color: white; }
+        .btn-primary:hover { background: #0747a6; }
+        .btn-secondary { background: white; border: 1px solid #dfe1e6; color: #6b778c; }
+        .btn-secondary:hover { background: #f4f5f7; }
+        .btn-success { background: #36b37e; color: white; }
+        .btn-success:hover { background: #2d9a6b; }
+        .btn-execute { background: linear-gradient(135deg, #36b37e 0%, #00875a 100%); color: white; padding: 15px 30px; font-size: 16px; }
+        .btn-execute:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(54,179,126,0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Navigation */
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 1px solid #dfe1e6; }
+        
+        /* Preview Panel */
+        .preview-panel { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .preview-title { font-size: 16px; font-weight: 600; color: #172b4d; }
+        .preview-badge { background: #deebff; color: #0052cc; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        
+        /* Info Box */
+        .info-box { background: #deebff; border-left: 4px solid #0052cc; padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+        .info-box.success { background: #e3fcef; border-color: #36b37e; }
+        .info-box.warning { background: #fffae6; border-color: #ff991f; }
+        .info-box p { font-size: 13px; color: #172b4d; line-height: 1.5; }
+        .info-box strong { display: block; margin-bottom: 5px; }
+        
+        /* Quiz Preview Mode */
+        .quiz-preview { background: #f9f9f9; border: 2px dashed #dfe1e6; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .quiz-preview-header { text-align: center; margin-bottom: 20px; }
+        .quiz-preview-header h3 { color: #172b4d; font-size: 18px; margin-bottom: 5px; }
+        .quiz-preview-header p { color: #6b778c; font-size: 13px; }
+        
+        /* Shuffle Button */
+        .shuffle-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #dfe1e6; padding: 8px 15px; border-radius: 5px; font-size: 13px; color: #6b778c; cursor: pointer; transition: all 0.2s; }
+        .shuffle-btn:hover { border-color: #0052cc; color: #0052cc; }
+        
+        /* Execute Panel */
+        .execute-panel { background: linear-gradient(135deg, #f4f5f7 0%, #e9ebee 100%); border-radius: 10px; padding: 30px; text-align: center; }
+        .execute-icon { font-size: 48px; margin-bottom: 15px; }
+        .execute-title { font-size: 20px; color: #172b4d; margin-bottom: 10px; }
+        .execute-desc { font-size: 14px; color: #6b778c; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; }
+        
+        /* Summary Stats */
+        .summary-stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 25px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #0052cc; }
+        .stat-label { font-size: 12px; color: #6b778c; }
+        
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 10px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal h3 { font-size: 18px; color: #172b4d; margin-bottom: 15px; }
+        .modal p { font-size: 14px; color: #6b778c; margin-bottom: 20px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+        
+        /* Success Animation */
+        .success-checkmark { width: 80px; height: 80px; margin: 0 auto 20px; background: #36b37e; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: scaleIn 0.3s ease; }
+        .success-checkmark::after { content: '✓'; color: white; font-size: 40px; font-weight: bold; }
+        @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        /* Code Block */
+        .code-block { background: #1e1e1e; border-radius: 8px; padding: 15px; margin: 15px 0; overflow-x: auto; }
+        .code-block code { color: #d4d4d4; font-family: 'Monaco', 'Menlo', monospace; font-size: 12px; white-space: pre-wrap; }
+        .copy-btn { background: #0052cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 10px; }
+        .copy-btn:hover { background: #0747a6; }
+        
+        @media (max-width: 600px) { 
+            .topic-grid { grid-template-columns: 1fr; }
+            .question-options { grid-template-columns: 1fr; }
+            .summary-stats { flex-direction: column; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Quiz Builder</h1>
+            <p>Create knowledge quizzes from Maps Ground Truth content</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">
+                <div class="progress-circle">1</div>
+                <div class="progress-label">Select Topic</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="progress-circle">2</div>
+                <div class="progress-label">Review Questions</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="progress-circle">3</div>
+                <div class="progress-label">Preview Quiz</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="progress-circle">4</div>
+                <div class="progress-label">Execute</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Topic Selection -->
+        <div class="card active" id="step1">
+            <h2>What do you want the quiz to be about?</h2>
+            <p class="subtitle">Select a topic from the Maps Ground Truth knowledge base</p>
+            
+            <div class="topic-grid" id="topicGrid">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div class="info-box">
+                <p><strong>How it works:</strong> Select a topic, and we'll generate 10 multiple-choice questions based on the official Confluence documentation. You can review and customize before publishing.</p>
+            </div>
+        </div>
+        
+        <!-- Step 2: Review Questions -->
+        <div class="card" id="step2">
+            <h2>Review Quiz Questions</h2>
+            <p class="subtitle">These questions will be included in your quiz. Uncheck any you want to exclude.</p>
+            
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <div class="preview-title" id="selectedTopicName">Speed Propagation Rules</div>
+                    <div style="display: flex; gap: 10px;">
+                        <span class="preview-badge" id="questionCount">10 questions</span>
+                        <button class="shuffle-btn" onclick="shuffleQuestions()">
+                            🔀 Shuffle
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="question-list" id="questionList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goToStep(1)">← Back to Topics</button>
+                <button class="btn btn-primary" onclick="goToStep(3)" id="previewBtn">Preview Quiz →</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Preview Quiz -->
+        <div class="card" id="step3">
+            <h2>Preview Your Quiz</h2>
+            <p class="subtitle">Test the quiz experience before publishing</p>
+            
+            <div class="quiz-preview" id="quizPreviewContainer">
+                <!-- Quiz preview will be rendered here -->
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goToStep(2)">← Edit Questions</button>
+                <button class="btn btn-success" onclick="goToStep(4)">Looks Good! →</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Execute -->
+        <div class="card" id="step4">
+            <div class="execute-panel">
+                <div class="execute-icon">🚀</div>
+                <div class="execute-title">Ready to Publish!</div>
+                <div class="execute-desc">Your quiz is ready. Click Execute to create it as a Confluence sub-page.</div>
+                
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="finalQuestionCount">10</div>
+                        <div class="stat-label">Questions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="finalTopicName">Topic</div>
+                        <div class="stat-label">Topic</div>
+                    </div>
+                </div>
+                
+                <div class="settings-section" style="text-align: left; max-width: 400px; margin: 0 auto 25px;">
+                    <h3>Quiz Settings</h3>
+                    <div class="setting-row">
+                        <span class="setting-label">Quiz Title</span>
+                        <input type="text" class="setting-input" id="quizTitle" placeholder="Enter quiz title">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Parent Page</span>
+                        <span class="setting-value">Confluence Quiz Tool</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-execute" onclick="executeQuiz()">
+                    ✨ Execute - Create Quiz Page
+                </button>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goToStep(3)">← Back to Preview</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="success-checkmark"></div>
+            <h3 style="text-align: center;">Quiz Created Successfully!</h3>
+            <p style="text-align: center;">Your quiz has been prepared. Use the code below to embed it in Confluence.</p>
+            
+            <div class="code-block">
+                <code id="embedCode">&lt;iframe src="..." width="100%" height="800" frameborder="0"&gt;&lt;/iframe&gt;</code>
+            </div>
+            
+            <div class="info-box success">
+                <p><strong>Next Steps:</strong></p>
+                <p>1. Copy the embed code above</p>
+                <p>2. In Confluence, edit the quiz page</p>
+                <p>3. Add an HTML macro and paste the code</p>
+                <p>4. Publish the page</p>
+            </div>
+            
+            <button class="copy-btn" onclick="copyEmbedCode()" style="width: 100%;">📋 Copy Embed Code</button>
+            
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button class="btn btn-secondary" onclick="closeModal()" style="flex: 1;">Close</button>
+                <button class="btn btn-primary" onclick="openQuizInNewTab()" style="flex: 1;">Open Quiz ↗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // QUESTION BANKS - From Confluence Content
+        // ============================================
+        
+        const questionBanks = {
+            "speed-propagation": {
+                name: "Speed Propagation Rules",
+                icon: "🚦",
+                description: "Country-specific junction behavior and when speed resets or continues",
+                confluencePage: "5. Speed Propagation Rules",
+                questions: [
+                    { question: "In Germany, does speed propagate when going STRAIGHT through a junction?", options: ["Yes", "No", "Only on highways", "Only in urban areas"], correct: 0, explanation: "Germany: Straight = Yes. The speed limit continues when going straight." },
+                    { question: "Which country is the ONLY one where speed propagates on TURNS?", options: ["Germany", "France", "Ireland", "UK"], correct: 2, explanation: "Ireland is the only country where speed propagates both straight (Yes) AND turn (Yes)." },
+                    { question: "What happens to speed in France after passing through a junction?", options: ["Speed always continues", "Speed resets to road type default", "Speed increases by 10 km/h", "Speed is determined by next sign only"], correct: 1, explanation: "France: Straight = No, Turn = No. Speed resets to road type default." },
+                    { question: "Zone 30 signs propagate speed in which directions?", options: ["Only straight", "Only turns", "ALL directions until End of Zone", "Neither direction"], correct: 2, explanation: "Zone signs propagate in ALL directions and continue until End of Zone sign." },
+                    { question: "In the Netherlands, does speed propagate when going straight?", options: ["Yes", "No", "Only on highways", "Depends on road type"], correct: 1, explanation: "Netherlands: Straight = No. Speed limit ends after passing a side road." },
+                    { question: "What does 'speed propagation = Yes' mean?", options: ["Speed must increase", "Speed limit continues past the junction", "Speed resets to default", "Speed sign is required"], correct: 1, explanation: "'Yes' means speed limit from before the junction continues after." },
+                    { question: "In Austria, what happens to speed when you TURN at a junction?", options: ["Speed propagates", "Speed resets to road type", "Speed doubles", "Speed is unchanged"], correct: 1, explanation: "Austria: Straight = Yes, Turn = No. When turning, speed resets." },
+                    { question: "Which country has Straight = No for speed propagation?", options: ["Germany", "Denmark", "Belgium", "Norway"], correct: 2, explanation: "Belgium has Straight = No, Turn = No." },
+                    { question: "In the UK, does speed propagate when going straight?", options: ["Yes", "No", "Only in London", "Only outside cities"], correct: 0, explanation: "UK: Straight = Yes." },
+                    { question: "What happens when road type changes significantly at a junction?", options: ["Keep the previous speed", "Use the new road type speed", "Use 50 km/h always", "Use the average"], correct: 1, explanation: "Even in 'Yes' countries, reset to road type when it changes significantly." },
+                    { question: "In Spain, does speed propagate when going straight?", options: ["Yes", "No", "Only in Catalonia", "Only on motorways"], correct: 1, explanation: "Spain: Straight = No, Turn = No." },
+                    { question: "What is the typical urban default speed in most European countries?", options: ["30 km/h", "40 km/h", "50 km/h", "60 km/h"], correct: 2, explanation: "50 km/h is the typical urban default." },
+                    { question: "In Japan, does speed propagate when going straight?", options: ["Yes", "No", "Only in Tokyo", "Only on expressways"], correct: 0, explanation: "Japan: Straight = Yes, Turn = No." },
+                    { question: "How should you treat roundabouts for speed propagation?", options: ["As a single junction", "As separate junctions (enter/exit)", "Ignore roundabouts", "Always use 30 km/h"], correct: 1, explanation: "Treat entering and exiting as separate junctions." },
+                    { question: "In Israel, does speed propagate at junctions?", options: ["Yes for straight, No for turn", "No for both", "Yes for both", "Only on highways"], correct: 1, explanation: "Israel: Straight = No, Turn = No." }
+                ]
+            },
+            
+            "confidence-values": {
+                name: "Confidence Values",
+                icon: "🎯",
+                description: "When to use Confidence 0-8 for different speed limit scenarios",
+                confluencePage: "Legal Speed Guide",
+                questions: [
+                    { question: "What confidence value for a regular explicit speed sign?", options: ["0", "1", "4", "6"], correct: 0, explanation: "Confidence 0 = normal/explicit speed sign." },
+                    { question: "What confidence indicates construction zone?", options: ["1", "2", "3", "5"], correct: 1, explanation: "Confidence 2 = construction zone." },
+                    { question: "When should you use Confidence 3?", options: ["School zone", "Bad DP (gap/hole)", "Map edge", "Weather conditions"], correct: 1, explanation: "Confidence 3 = Bad DP with gap or hole." },
+                    { question: "What confidence for variable electronic signs?", options: ["2", "3", "4", "7"], correct: 2, explanation: "Confidence 4 = electric/variable sign." },
+                    { question: "DP starts at map edge - what confidence?", options: ["0", "3", "5", "8"], correct: 2, explanation: "Confidence 5 = Map Edge." },
+                    { question: "What confidence for school zones?", options: ["2", "4", "6", "8"], correct: 2, explanation: "Confidence 6 = School Zone." },
+                    { question: "When should you use Confidence 7?", options: ["Construction", "Electric sign", "Time-based speed", "Weather-based"], correct: 2, explanation: "Confidence 7 = time-based (varies by time of day)." },
+                    { question: "What confidence for weather-based speed limits?", options: ["5", "6", "7", "8"], correct: 3, explanation: "Confidence 8 = weather-based." },
+                    { question: "Sign shows speed with rain symbol - what confidence?", options: ["0", "2", "7", "8"], correct: 3, explanation: "Confidence 8 for weather-conditional speeds." },
+                    { question: "Sign shows '30' with '22:00-06:00' - what confidence?", options: ["0", "4", "7", "8"], correct: 2, explanation: "Confidence 7 for time-based signs." },
+                    { question: "What is the valid range for confidence values?", options: ["0-5", "0-8", "1-10", "0-10"], correct: 1, explanation: "Confidence values range from 0 to 8." },
+                    { question: "Temporary '50' sign at construction site - confidence?", options: ["0", "2", "4", "5"], correct: 1, explanation: "Confidence 2 for construction zones." }
+                ]
+            },
+            
+            "glossary": {
+                name: "Glossary & Concepts",
+                icon: "📖",
+                description: "Core terms, definitions, and abbreviations",
+                confluencePage: "1. Glossary and Concepts",
+                questions: [
+                    { question: "What does 'DP' stand for?", options: ["Decision Point", "Drivable Path", "Data Point", "Direction Path"], correct: 1, explanation: "DP = Drivable Path." },
+                    { question: "What is the maximum allowed V_Value?", options: ["0.5", "0.8", "0.9", "1.0"], correct: 2, explanation: "V_Value cannot exceed 0.9." },
+                    { question: "What does V_Value represent?", options: ["Speed value", "Position along DP", "Visibility", "Verification"], correct: 1, explanation: "V_Value = position where speed changes (0.0 to 0.9)." },
+                    { question: "What does 'GT' stand for?", options: ["General Traffic", "Ground Truth", "GPS Tracking", "Geographic Terrain"], correct: 1, explanation: "GT = Ground Truth." },
+                    { question: "What does 'MM' stand for?", options: ["Map Marker", "Multiple Maps", "Main Menu", "Measurement Mode"], correct: 0, explanation: "MM = Map Marker (the editing tool)." },
+                    { question: "What is an 'Explicit Sign'?", options: ["Sign showing road type", "Traditional speed limit sign with number", "Sign with instructions", "Electronic sign"], correct: 1, explanation: "Explicit Sign = traditional speed sign (e.g., '50')." },
+                    { question: "What does 'CE' sign indicate?", options: ["City Exit", "City Entrance", "Controlled Exit", "Central Entry"], correct: 1, explanation: "CE = City Entrance." },
+                    { question: "What does 'CX' sign indicate?", options: ["City Crossing", "City Exit", "Central Crossing", "Controlled Exit"], correct: 1, explanation: "CX = City Exit." },
+                    { question: "What does 'HWE' stand for?", options: ["Highway Exit", "Highway Entrance", "High Way East", "Highway Edge"], correct: 1, explanation: "HWE = Highway Entrance." },
+                    { question: "What does V_Value 0.0 represent?", options: ["End of DP", "Middle of DP", "Start of DP", "No data"], correct: 2, explanation: "0.0 = start of the DP." },
+                    { question: "What is '3D Clustering' (C3D)?", options: ["Navigation tool", "Layer showing detected signs", "3D map view", "Clustering algorithm"], correct: 1, explanation: "C3D shows detected signs from vehicle cameras." },
+                    { question: "What formula converts MPH to km/h?", options: ["MPH × 0.6", "MPH × 1.6", "MPH ÷ 1.6", "MPH + 10"], correct: 1, explanation: "MPH × 1.6 = km/h." },
+                    { question: "What does 'LS' stand for?", options: ["Lane Speed", "Legal Speed", "Local Sign", "Lane Section"], correct: 1, explanation: "LS = Legal Speed." },
+                    { question: "55 MPH converts to approximately?", options: ["72 km/h", "80 km/h", "88 km/h", "96 km/h"], correct: 2, explanation: "55 × 1.6 = 88 km/h." },
+                    { question: "What does 'RA' stand for?", options: ["Road Access", "Roundabout", "Restricted Area", "Road Authority"], correct: 1, explanation: "RA = Roundabout." }
+                ]
+            },
+            
+            "editing": {
+                name: "Editing Legal Speed",
+                icon: "✏️",
+                description: "V_Value, bulk editing, and workflow procedures",
+                confluencePage: "3. How to Edit Legal Speed",
+                questions: [
+                    { question: "What are the three editable fields for Legal Speed?", options: ["Speed, Distance, Time", "Value, V_Value, Confidence", "Start, End, Duration", "Width, Height, Depth"], correct: 1, explanation: "Value (speed), V_Value (position), Confidence (type)." },
+                    { question: "How do you select multiple DPs for bulk editing?", options: ["Shift + Click", "CTRL + Left Click", "Alt + Click", "Double click"], correct: 1, explanation: "CTRL + Left Click to multi-select." },
+                    { question: "Shortcut to copy V_Value at a point?", options: ["Ctrl + C", "Alt + Shift + Left Click", "Ctrl + V", "Shift + Right Click"], correct: 1, explanation: "Alt + Shift + Left Click copies V_Value." },
+                    { question: "Button to apply bulk edit changes?", options: ["Save", "Apply", "Create Changeset Items and Apply", "Submit"], correct: 2, explanation: "Click 'Create Changeset Items and Apply'." },
+                    { question: "Can a single DP have multiple speed changes?", options: ["No", "Yes, each with own Value/V_Value/Confidence", "Only in bulk mode", "Only on highways"], correct: 1, explanation: "Yes, each change needs its own entry." },
+                    { question: "Default V_Value for first row?", options: ["0.5", "0.0", "0.9", "1.0"], correct: 1, explanation: "First row default is 0.0 (start of DP)." },
+                    { question: "What should you do BEFORE editing Legal Speed?", options: ["Delete all values", "Verify with Google Maps Street View", "Reset the map", "Close windows"], correct: 1, explanation: "Always verify with external sources first." },
+                    { question: "What indicates a speed change is needed on DPs?", options: ["DP disappears", "Color changes", "DP flashes", "Text appears"], correct: 1, explanation: "Color changes indicate different speeds." },
+                    { question: "Can Bulk Action apply different speeds simultaneously?", options: ["Yes", "No, all must get same speed", "Only with admin permission", "Only on highways"], correct: 1, explanation: "Bulk Action requires same speed for all selected DPs." },
+                    { question: "Which field to select for bulk Legal Speed editing?", options: ["speed_limit", "legal_speed", "max_speed", "road_speed"], correct: 1, explanation: "Select 'legal_speed' in Field to Update." },
+                    { question: "What does 'GT Mode' show?", options: ["GPS coordinates", "Simplified view for annotation", "Traffic data", "Weather"], correct: 1, explanation: "GT Mode = simplified annotation view." },
+                    { question: "How to open quick Legal Speed edit menu?", options: ["Double-click", "Right-click on DP", "Press Enter", "Keyboard only"], correct: 1, explanation: "Right-click opens the quick edit menu." }
+                ]
+            },
+            
+            "junctions": {
+                name: "Junctions & Roundabouts",
+                icon: "🔄",
+                description: "Rules for speed at intersections and merge lanes",
+                confluencePage: "Day 2 - Legal Speed Training",
+                questions: [
+                    { question: "If there's a sign before/inside junction, change speed after based on road type?", options: ["Yes, always", "No, use the sign speed", "Only in Germany", "Only for turns"], correct: 1, explanation: "If sign exists, use that speed - no road type reset needed." },
+                    { question: "Junction with missing DPs in one entrance - still a junction?", options: ["No", "Yes", "Only in urban areas", "Depends on country"], correct: 1, explanation: "Yes, still considered a junction." },
+                    { question: "In merge lanes, when should speed change?", options: ["Start of ramp", "When lane mark turns solid to dashed", "End of merge", "Never"], correct: 1, explanation: "When lane marks turn dashed (merge possible)." },
+                    { question: "Turn exits highway and re-enters another highway - what to do?", options: ["Reset to urban speed", "Maintain Legal Speed unless sign on ramp", "Always use 80 km/h", "Use lower speed"], correct: 1, explanation: "Maintain speed unless explicit sign on ramp." },
+                    { question: "Solid-dash lane marking - where to start speed tag?", options: ["End of solid-dash", "Beginning of solid-dash", "Middle", "After merge"], correct: 1, explanation: "Start at beginning where merging becomes possible." },
+                    { question: "In countries without propagation, what happens after junction?", options: ["Speed continues", "Speed resets to road type default", "Speed increases", "Random"], correct: 1, explanation: "Speed resets to road type default." },
+                    { question: "When in doubt about junction speed rules?", options: ["Guess", "Use conservative tagging or escalate to SME", "Leave unchanged", "Use maximum"], correct: 1, explanation: "Be conservative or escalate to team lead." },
+                    { question: "At roundabout, how many junctions for propagation?", options: ["One (whole roundabout)", "Two (enter and exit)", "Three", "None"], correct: 1, explanation: "Two separate junctions: entering and exiting." },
+                    { question: "When should road type override propagation?", options: ["Never", "When road type changes significantly", "Only in Germany", "Only at night"], correct: 1, explanation: "When road type changes significantly (e.g., highway to urban)." },
+                    { question: "For merge lane confidence at changing point?", options: ["Always Confidence 0", "Equal to the DP merging into", "Always Confidence 5", "Always Confidence 2"], correct: 1, explanation: "Match the confidence of the road you're merging into." }
+                ]
+            },
+            
+            "country-rules": {
+                name: "Country-Specific Rules",
+                icon: "🌍",
+                description: "Default speeds and special rules by country",
+                confluencePage: "Various LS Rules pages",
+                questions: [
+                    { question: "Default urban speed in Germany?", options: ["30 km/h", "50 km/h", "60 km/h", "70 km/h"], correct: 1, explanation: "Germany urban = 50 km/h." },
+                    { question: "What does 'Zone 30' mean in Germany?", options: ["30 minute parking", "30 km/h speed zone", "30 meters to sign", "30 cars maximum"], correct: 1, explanation: "Zone 30 = 30 km/h speed limit zone." },
+                    { question: "In Germany, what speed represents 'unlimited'?", options: ["999 km/h", "254 km/h", "200 km/h", "130 km/h"], correct: 1, explanation: "254 km/h = unlimited (Autobahn without limit)." },
+                    { question: "Typical highway speed in France?", options: ["110 km/h", "120 km/h", "130 km/h", "140 km/h"], correct: 2, explanation: "France highway = 130 km/h." },
+                    { question: "Special urban speed options in France?", options: ["50 only", "50 standard, 30 Zone/Paris, 20 shared area", "No special options", "70 and 50"], correct: 1, explanation: "France has 50, 30 (Zone/Paris), and 20 (shared area)." },
+                    { question: "In UK, speed limits displayed in?", options: ["km/h", "MPH", "m/s", "knots"], correct: 1, explanation: "UK uses MPH." },
+                    { question: "UK urban speed limit in km/h?", options: ["48 km/h", "50 km/h", "56 km/h", "64 km/h"], correct: 0, explanation: "30 mph = 48 km/h." },
+                    { question: "USA typical residential speed limit?", options: ["25 mph (40 km/h)", "35 mph (56 km/h)", "45 mph (72 km/h)", "55 mph (88 km/h)"], correct: 0, explanation: "USA residential = 25 mph (40 km/h)." },
+                    { question: "Default urban speed in Japan?", options: ["40 km/h", "50 km/h", "60 km/h", "70 km/h"], correct: 2, explanation: "Japan urban = 60 km/h." },
+                    { question: "Austria rural/highway speeds?", options: ["80/120 km/h", "100/130 km/h", "90/120 km/h", "100/140 km/h"], correct: 1, explanation: "Austria: 100 km/h rural, 130 km/h highway." },
+                    { question: "Speed propagation exceptions in Croatia?", options: ["None", "City entrance, tunnels, bridges", "Weather only", "Time-based only"], correct: 1, explanation: "Croatia: city entrance, tunnels, bridges exceptions." },
+                    { question: "Poland highway speed limit?", options: ["120 km/h", "130 km/h", "140 km/h", "150 km/h"], correct: 2, explanation: "Poland highway = 140 km/h." },
+                    { question: "In Spain, what determines urban speed (30 vs 50)?", options: ["Time of day", "Number of lanes per direction", "Weather", "City size"], correct: 1, explanation: "Spain: 2+ lanes = 50, 1 lane = 30, shared = 20." }
+                ]
+            }
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+        
+        let selectedTopic = null;
+        let selectedQuestions = [];
+        let quizPreviewIndex = 0;
+        let quizPreviewScore = 0;
+        let quizPreviewAnswered = false;
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        function init() {
+            populateTopicGrid();
+        }
+        
+        function populateTopicGrid() {
+            const grid = document.getElementById('topicGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, topic] of Object.entries(questionBanks)) {
+                const btn = document.createElement('div');
+                btn.className = 'topic-btn';
+                btn.onclick = () => selectTopic(key);
+                btn.innerHTML = `
+                    <div class="topic-header">
+                        <span class="topic-icon">${topic.icon}</span>
+                        <span class="topic-name">${topic.name}</span>
+                    </div>
+                    <div class="topic-desc">${topic.description}</div>
+                    <div class="topic-count">${topic.questions.length} questions available</div>
+                `;
+                grid.appendChild(btn);
+            }
+        }
+        
+        // ============================================
+        // TOPIC SELECTION
+        // ============================================
+        
+        function selectTopic(topicKey) {
+            selectedTopic = topicKey;
+            const topic = questionBanks[topicKey];
+            
+            // Mark selected
+            document.querySelectorAll('.topic-btn').forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            // Select 10 random questions
+            selectedQuestions = shuffleArray([...topic.questions]).slice(0, 10).map((q, i) => ({
+                ...q,
+                included: true,
+                originalIndex: i
+            }));
+            
+            // Go to step 2 after brief delay
+            setTimeout(() => {
+                document.getElementById('selectedTopicName').textContent = topic.name;
+                populateQuestionList();
+                goToStep(2);
+            }, 300);
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // ============================================
+        // QUESTION REVIEW
+        // ============================================
+        
+        function populateQuestionList() {
+            const list = document.getElementById('questionList');
+            list.innerHTML = '';
+            
+            selectedQuestions.forEach((q, i) => {
+                const item = document.createElement('div');
+                item.className = `question-item ${q.included ? 'included' : 'excluded'}`;
+                item.id = `question-${i}`;
+                
+                const optionsHtml = q.options.map((opt, oi) => 
+                    `<div class="option-preview ${oi === q.correct ? 'correct' : ''}">${String.fromCharCode(65 + oi)}. ${opt}</div>`
+                ).join('');
+                
+                item.innerHTML = `
+                    <div class="question-number">Question ${i + 1}</div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="question-options">${optionsHtml}</div>
+                    <div class="question-toggle">
+                        <input type="checkbox" id="include-${i}" ${q.included ? 'checked' : ''} onchange="toggleQuestion(${i})">
+                        <label for="include-${i}">Include in quiz</label>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            
+            updateQuestionCount();
+        }
+        
+        function toggleQuestion(index) {
+            selectedQuestions[index].included = !selectedQuestions[index].included;
+            document.getElementById(`question-${index}`).className = 
+                `question-item ${selectedQuestions[index].included ? 'included' : 'excluded'}`;
+            updateQuestionCount();
+        }
+        
+        function updateQuestionCount() {
+            const count = selectedQuestions.filter(q => q.included).length;
+            document.getElementById('questionCount').textContent = `${count} questions`;
+            document.getElementById('previewBtn').disabled = count < 3;
+        }
+        
+        function shuffleQuestions() {
+            const topic = questionBanks[selectedTopic];
+            selectedQuestions = shuffleArray([...topic.questions]).slice(0, 10).map((q, i) => ({
+                ...q,
+                included: true,
+                originalIndex: i
+            }));
+            populateQuestionList();
+        }
+        
+        // ============================================
+        // QUIZ PREVIEW
+        // ============================================
+        
+        function renderQuizPreview() {
+            const container = document.getElementById('quizPreviewContainer');
+            const questions = selectedQuestions.filter(q => q.included);
+            
+            quizPreviewIndex = 0;
+            quizPreviewScore = 0;
+            quizPreviewAnswered = false;
+            
+            renderPreviewQuestion(container, questions);
+        }
+        
+        function renderPreviewQuestion(container, questions) {
+            if (quizPreviewIndex >= questions.length) {
+                // Show results
+                const percent = Math.round((quizPreviewScore / questions.length) * 100);
+                container.innerHTML = `
+                    <div class="quiz-preview-header">
+                        <h3>Preview Complete!</h3>
+                        <p>Score: ${quizPreviewScore}/${questions.length} (${percent}%)</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px;">
+                        <button class="btn btn-primary" onclick="renderQuizPreview()">Try Again</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const q = questions[quizPreviewIndex];
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            container.innerHTML = `
+                <div class="quiz-preview-header">
+                    <h3>Question ${quizPreviewIndex + 1} of ${questions.length}</h3>
+                    <p style="margin-top: 10px; font-size: 15px; color: #172b4d;">${q.question}</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
+                    ${q.options.map((opt, i) => `
+                        <button class="btn" id="preview-opt-${i}" onclick="selectPreviewAnswer(${i}, ${q.correct})" style="text-align: left;">
+                            <strong>${letters[i]}.</strong> ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+                <div id="preview-feedback" style="display: none;"></div>
+                <div style="text-align: right; margin-top: 15px;">
+                    <button class="btn btn-primary" id="preview-next" onclick="nextPreviewQuestion()" disabled>Next →</button>
+                </div>
+            `;
+        }
+        
+        function selectPreviewAnswer(selected, correct) {
+            if (quizPreviewAnswered) return;
+            quizPreviewAnswered = true;
+            
+            const isCorrect = selected === correct;
+            if (isCorrect) quizPreviewScore++;
+            
+            // Highlight buttons
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`preview-opt-${i}`);
+                if (btn) {
+                    btn.disabled = true;
+                    if (i === correct) btn.classList.add('correct');
+                    else if (i === selected && !isCorrect) btn.classList.add('incorrect');
+                }
+            }
+            
+            // Show feedback
+            const feedback = document.getElementById('preview-feedback');
+            const q = selectedQuestions.filter(q => q.included)[quizPreviewIndex];
+            feedback.innerHTML = `
+                <div class="info-box ${isCorrect ? 'success' : 'warning'}">
+                    <p><strong>${isCorrect ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                    <p>${q.explanation}</p>
+                </div>
+            `;
+            feedback.style.display = 'block';
+            
+            document.getElementById('preview-next').disabled = false;
+        }
+        
+        function nextPreviewQuestion() {
+            quizPreviewIndex++;
+            quizPreviewAnswered = false;
+            const container = document.getElementById('quizPreviewContainer');
+            const questions = selectedQuestions.filter(q => q.included);
+            renderPreviewQuestion(container, questions);
+        }
+        
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        
+        function goToStep(step) {
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((el, i) => {
+                el.classList.remove('active', 'completed');
+                if (i + 1 < step) el.classList.add('completed');
+                else if (i + 1 === step) el.classList.add('active');
+            });
+            
+            // Show card
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // Special actions per step
+            if (step === 3) {
+                renderQuizPreview();
+            } else if (step === 4) {
+                const topic = questionBanks[selectedTopic];
+                const count = selectedQuestions.filter(q => q.included).length;
+                document.getElementById('finalQuestionCount').textContent = count;
+                document.getElementById('finalTopicName').textContent = topic.name;
+                document.getElementById('quizTitle').value = `${topic.name} Quiz`;
+            }
+        }
+        
+        // ============================================
+        // EXECUTE - CREATE QUIZ
+        // ============================================
+        
+        function executeQuiz() {
+            const topic = questionBanks[selectedTopic];
+            const questions = selectedQuestions.filter(q => q.included);
+            const title = document.getElementById('quizTitle').value || `${topic.name} Quiz`;
+            
+            // Generate quiz HTML
+            const quizHTML = generateQuizHTML(title, topic, questions);
+            
+            // Store in localStorage for the quiz page to access
+            localStorage.setItem('generatedQuiz', JSON.stringify({
+                title: title,
+                topic: topic.name,
+                questions: questions,
+                createdAt: new Date().toISOString()
+            }));
+            
+            // Show success modal
+            const embedCode = `<iframe src="https://segevt.github.io/confluence-tools/quiz-player.html" width="100%" height="800" frameborder="0"></iframe>`;
+            document.getElementById('embedCode').textContent = embedCode;
+            document.getElementById('successModal').classList.add('active');
+        }
+        
+        function generateQuizHTML(title, topic, questions) {
+            // This generates a standalone quiz that can be embedded
+            return `<!-- Quiz: ${title} -->`;
+        }
+        
+        function copyEmbedCode() {
+            const code = document.getElementById('embedCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.target;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy Embed Code', 2000);
+            });
+        }
+        
+        function openQuizInNewTab() {
+            window.open('quiz.html', '_blank');
+        }
+        
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
