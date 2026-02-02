@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Ground Truth - Quiz Builder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Liquid Glass Background Themes - Neutral, elegant */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 15px;
+            color: #e4e4e7;
+            transition: background 0.5s ease;
+        }
+        body.bg-dark {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #262626 100%);
+        }
+        body.bg-purple {
+            background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%);
+        }
+        body.bg-ocean {
+            background: linear-gradient(135deg, #0c1821 0%, #162129 50%, #1e333d 100%);
+        }
+        body.bg-sunset {
+            background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #3d3633 100%);
+        }
+        body.bg-forest {
+            background: linear-gradient(135deg, #0a1612 0%, #14261e 50%, #1a3328 100%);
+        }
+        
+        /* Background switcher button */
+        .bg-switcher {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 30px;
+            cursor: pointer;
+            color: #e4e4e7;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .bg-switcher:hover {
+            background: rgba(255,255,255,0.12);
+            transform: scale(1.05);
+        }
+        .bg-switcher .icon { font-size: 1.1rem; }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        
+        /* Liquid Glass Effect - Enhanced */
+        .glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 25px 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #f0f0f0, #a0a0a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p { color: #71717a; font-size: 1rem; }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px;
+            font-size: 0.9rem;
+            color: #71717a;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+        .progress-step.active {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(255,255,255,0.1);
+        }
+        .progress-step.completed {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .progress-step.active .step-number { background: rgba(255,255,255,0.25); }
+        .progress-step.completed .step-number { background: #22c55e; color: white; }
+        
+        .card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            display: none;
+        }
+        .card.active { display: block; }
+        .card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #e4e4e7;
+        }
+        
+        /* Topic Selection */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .topic-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .topic-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .topic-card.selected {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.1);
+        }
+        .topic-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .topic-card h3 { font-size: 1rem; margin-bottom: 6px; color: #e4e4e7; }
+        .topic-card p { font-size: 0.8rem; color: #71717a; }
+        .topic-card .task-leader {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.75rem;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .topic-card .task-leader .leader-label {
+            color: #52525b;
+        }
+        .topic-card .task-leader .leader-name {
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+        .topic-card .question-count {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+        
+        /* Category headers */
+        .category-header {
+            font-size: 1.1rem;
+            color: #a1a1aa;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        .category-header:first-of-type { margin-top: 0; }
+        
+        /* Difficulty Selector */
+        .difficulty-selector {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+        }
+        .difficulty-label {
+            font-size: 1rem;
+            color: #a1a1aa;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .difficulty-bar {
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.2);
+            padding: 6px;
+            border-radius: 12px;
+        }
+        .difficulty-option {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border: 2px solid transparent;
+        }
+        .difficulty-option:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        .difficulty-option.easy {
+            color: #4ade80;
+        }
+        .difficulty-option.easy.selected {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+        }
+        .difficulty-option.medium {
+            color: #fbbf24;
+        }
+        .difficulty-option.medium.selected {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+        .difficulty-option.hard {
+            color: #f87171;
+        }
+        .difficulty-option.hard.selected {
+            background: rgba(248, 113, 113, 0.2);
+            border-color: #f87171;
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+        }
+        .difficulty-option.all {
+            color: #e4e4e7;
+        }
+        .difficulty-option.all.selected {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        .difficulty-info {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .difficulty-count {
+            background: rgba(255,255,255,0.1);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #e4e4e7;
+        }
+        
+        /* Difficulty badge on questions */
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+        .difficulty-badge.easy {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        .difficulty-badge.medium {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+        .difficulty-badge.hard {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+        
+        /* Question Review */
+        .question-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .question-item {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        .question-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        .question-item.excluded {
+            opacity: 0.5;
+            border-color: rgba(255,255,255,0.05);
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .question-text {
+            flex: 1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .question-toggle {
+            width: 50px;
+            height: 26px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .question-toggle.active { background: #22c55e; }
+        .question-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
+        }
+        .question-toggle.active::after { left: 27px; }
+        .question-options {
+            margin-top: 10px;
+            padding-left: 15px;
+            font-size: 0.85rem;
+            color: #a1a1aa;
+        }
+        .correct-option { color: #22c55e; font-weight: 500; }
+        
+        /* Quiz Preview */
+        .preview-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .preview-question {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .preview-question h4 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #f4f4f5;
+        }
+        .preview-options { display: flex; flex-direction: column; gap: 8px; }
+        .preview-option {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preview-option:hover { background: rgba(124, 58, 237, 0.2); }
+        .preview-option.selected { background: #7c3aed; color: white; }
+        .preview-option.correct { background: #22c55e; color: white; }
+        .preview-option.incorrect { background: #ef4444; color: white; }
+        
+        /* Buttons - Glass Style */
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .btn-primary {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.18);
+        }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.06);
+            color: #a1a1aa;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-secondary:hover { 
+            background: rgba(255,255,255,0.1); 
+            transform: translateY(-1px);
+            color: #e4e4e7;
+        }
+        .btn-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-success:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(34, 197, 94, 0.3);
+        }
+        
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px 20px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label { font-size: 0.85rem; color: #a1a1aa; margin-top: 5px; }
+        
+        /* Execute Section */
+        .execute-options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .execute-option {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .execute-option:hover { border-color: #7c3aed; }
+        .execute-option.selected { border-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+        .execute-option h3 { margin-bottom: 10px; color: #f4f4f5; }
+        .execute-option p { color: #a1a1aa; font-size: 0.9rem; }
+        
+        .quiz-name-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #e4e4e7;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .quiz-name-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #22c55e;
+        }
+        .modal p { color: #a1a1aa; margin-bottom: 15px; line-height: 1.6; }
+        
+        .iframe-settings {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label {
+            font-weight: 500;
+            color: #a1a1aa;
+        }
+        .setting-value {
+            font-family: monospace;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .setting-value:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+        
+        .copy-btn {
+            padding: 12px 24px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .copy-btn:hover { background: #6d28d9; }
+        
+        .steps-list {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        .steps-list h4 {
+            color: #f4f4f5;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+        .steps-list ol {
+            padding-left: 20px;
+            color: #a1a1aa;
+            line-height: 1.8;
+        }
+        .steps-list li { margin-bottom: 5px; }
+        .steps-list code {
+            background: rgba(124, 58, 237, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00d4ff;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .topic-grid { grid-template-columns: 1fr; }
+            .button-row { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-dark">
+    <!-- Background Switcher Button -->
+    <div class="bg-switcher" onclick="switchBackground()">
+        <span class="icon">🎨</span>
+        <span>Theme</span>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📚 Maps Ground Truth Quiz Builder</h1>
+            <p>Create comprehensive knowledge quizzes from all project areas</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-step active" id="prog1">
+                <span class="step-number">1</span>
+                <span>Select Topic</span>
+            </div>
+            <div class="progress-step" id="prog2">
+                <span class="step-number">2</span>
+                <span>Review Questions</span>
+            </div>
+            <div class="progress-step" id="prog3">
+                <span class="step-number">3</span>
+                <span>Preview Quiz</span>
+            </div>
+            <div class="progress-step" id="prog4">
+                <span class="step-number">4</span>
+                <span>Execute</span>
+            </div>
+        </div>
+        
+        <!-- Step 1: Topic Selection -->
+        <div class="card active" id="step1">
+            <h2>Select a Quiz Topic</h2>
+            
+            <!-- Difficulty Selector -->
+            <div class="difficulty-selector">
+                <div class="difficulty-label">
+                    <span>📊</span>
+                    <span>Select Difficulty Level</span>
+                </div>
+                <div class="difficulty-bar">
+                    <div class="difficulty-option all selected" data-difficulty="all" onclick="selectDifficulty('all')">
+                        🎯 All Levels
+                    </div>
+                    <div class="difficulty-option easy" data-difficulty="easy" onclick="selectDifficulty('easy')">
+                        🌱 Easy
+                    </div>
+                    <div class="difficulty-option medium" data-difficulty="medium" onclick="selectDifficulty('medium')">
+                        ⚡ Medium
+                    </div>
+                    <div class="difficulty-option hard" data-difficulty="hard" onclick="selectDifficulty('hard')">
+                        🔥 Hard
+                    </div>
+                </div>
+                <div class="difficulty-info">
+                    <span>💡</span>
+                    <span id="difficultyDescription">Showing all questions from all difficulty levels</span>
+                    <span class="difficulty-count" id="difficultyCount">-- questions</span>
+                </div>
+            </div>
+            
+            <h3 class="category-header">🔧 Core Tasks</h3>
+            <div class="topic-grid" id="coreTopics"></div>
+            
+            <h3 class="category-header">📖 General Knowledge</h3>
+            <div class="topic-grid" id="generalTopics"></div>
+            
+            <div class="button-row">
+                <div></div>
+                <button class="btn btn-primary" id="toStep2" disabled>Continue to Review →</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Question Review -->
+        <div class="card" id="step2">
+            <h2>Review & Customize Questions</h2>
+            
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalQuestions">0</div>
+                    <div class="stat-label">Total Questions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="selectedQuestions">0</div>
+                    <div class="stat-label">Selected</div>
+                </div>
+            </div>
+            
+            <div class="button-row" style="margin-bottom: 20px; margin-top: 0;">
+                <button class="btn btn-secondary" onclick="selectAllQuestions()">Select All</button>
+                <button class="btn btn-secondary" onclick="selectRandomQuestions(10)">Random 10</button>
+                <button class="btn btn-secondary" onclick="shuffleSelectedQuestions()">Shuffle Order</button>
+            </div>
+            
+            <div class="question-list" id="questionList"></div>
+            
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                <button class="btn btn-primary" id="toStep3">Preview Quiz →</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Preview -->
+        <div class="card" id="step3">
+            <h2>Preview Your Quiz</h2>
+            <p style="color: #a1a1aa; margin-bottom: 20px;">Test your quiz before publishing. Click options to see how it works.</p>
+            
+            <div class="preview-container" id="previewContainer"></div>
+            
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="goToStep(2)">← Back to Edit</button>
+                <button class="btn btn-primary" onclick="goToStep(4)">Continue to Execute →</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Execute -->
+        <div class="card" id="step4">
+            <h2>🚀 Publish Your Quiz</h2>
+            
+            <label style="display: block; margin-bottom: 10px; color: #a1a1aa;">Quiz Name:</label>
+            <input type="text" class="quiz-name-input" id="quizName" placeholder="e.g., CAT Basics Quiz - Week 1">
+            
+            <div class="button-row" style="margin-top: 0;">
+                <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+                <button class="btn btn-success" onclick="executeQuiz()">✨ Generate Quiz Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <h2>✅ Quiz Ready!</h2>
+            <div id="modalContent"></div>
+            <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 15px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // BACKGROUND SWITCHER
+        // ==========================================
+        const backgrounds = ['bg-dark', 'bg-purple', 'bg-ocean', 'bg-sunset', 'bg-forest'];
+        let currentBgIndex = 0;
+        
+        function switchBackground() {
+            document.body.classList.remove(backgrounds[currentBgIndex]);
+            currentBgIndex = (currentBgIndex + 1) % backgrounds.length;
+            document.body.classList.add(backgrounds[currentBgIndex]);
+            localStorage.setItem('quizBuilderBg', backgrounds[currentBgIndex]);
+        }
+        
+        // Load saved background on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedBg = localStorage.getItem('quizBuilderBg');
+            if (savedBg && backgrounds.includes(savedBg)) {
+                document.body.classList.remove('bg-dark');
+                document.body.classList.add(savedBg);
+                currentBgIndex = backgrounds.indexOf(savedBg);
+            }
+        });
+
+        // ==========================================
+        // DIFFICULTY SYSTEM
+        // ==========================================
+        let selectedDifficulty = 'all';
+        
+        const difficultyDescriptions = {
+            all: 'Showing all questions from all difficulty levels',
+            easy: 'Basic concepts and terminology - great for beginners',
+            medium: 'Intermediate knowledge - requires some experience',
+            hard: 'Advanced topics - for experienced team members'
+        };
+        
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            
+            // Update UI
+            document.querySelectorAll('.difficulty-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`.difficulty-option.${difficulty}`).classList.add('selected');
+            
+            // Update description
+            document.getElementById('difficultyDescription').textContent = difficultyDescriptions[difficulty];
+            
+            // Update question count for selected topic
+            updateDifficultyCount();
+            
+            // Re-render topics to update question counts
+            renderTopics();
+        }
+        
+        function updateDifficultyCount() {
+            if (selectedTopic && questionBanks[selectedTopic]) {
+                const questions = questionBanks[selectedTopic].questions;
+                const count = selectedDifficulty === 'all' 
+                    ? questions.length 
+                    : questions.filter(q => q.difficulty === selectedDifficulty).length;
+                document.getElementById('difficultyCount').textContent = `${count} questions`;
+            } else {
+                // Count total questions across all topics for the selected difficulty
+                let totalCount = 0;
+                Object.values(questionBanks).forEach(topic => {
+                    if (selectedDifficulty === 'all') {
+                        totalCount += topic.questions.length;
+                    } else {
+                        totalCount += topic.questions.filter(q => q.difficulty === selectedDifficulty).length;
+                    }
+                });
+                document.getElementById('difficultyCount').textContent = `${totalCount} questions total`;
+            }
+        }
+        
+        // Auto-assign difficulty based on question patterns if not set
+        function assignDifficulty(question, index, totalQuestions) {
+            if (question.difficulty) return question.difficulty;
+            
+            // Heuristics for auto-assignment:
+            const q = question.question.toLowerCase();
+            
+            // Easy: Basic definitions, "What does X stand for", simple shortcuts
+            if (q.includes('what does') && q.includes('stand for')) return 'easy';
+            if (q.includes('what is the purpose')) return 'easy';
+            if (q.includes('what tool is used')) return 'easy';
+            if (q.includes('keyboard shortcut')) return 'medium';
+            
+            // Hard: Specific values, edge cases, complex rules
+            if (q.includes('how many') || q.includes('what is the minimum')) return 'hard';
+            if (q.includes('when should') || q.includes('what should be done when')) return 'hard';
+            if (q.includes('exception') || q.includes('edge case')) return 'hard';
+            
+            // Distribute remaining by position (first 1/3 easy, middle 1/3 medium, last 1/3 hard)
+            const position = index / totalQuestions;
+            if (position < 0.33) return 'easy';
+            if (position < 0.66) return 'medium';
+            return 'hard';
+        }
+        
+        function getFilteredQuestions(topic) {
+            const questions = questionBanks[topic].questions;
+            // Ensure all questions have difficulty assigned
+            questions.forEach((q, i) => {
+                if (!q.difficulty) {
+                    q.difficulty = assignDifficulty(q, i, questions.length);
+                }
+            });
+            
+            if (selectedDifficulty === 'all') {
+                return questions;
+            }
+            return questions.filter(q => q.difficulty === selectedDifficulty);
+        }
+
+        // ==========================================
+        // COMPREHENSIVE QUESTION BANKS
+        // ==========================================
+        const questionBanks = {
+            // ============ CORE TASKS ============
+            "cat-project": {
+                name: "CAT (Change Detection)",
+                icon: "🔍",
+                description: "Change Annotation Tool - detecting road changes over time",
+                category: "core",
+                taskLeader: "Amir Biniashvili",
+                questions: [
+                    {
+                        question: "What does CAT stand for in the context of this project?",
+                        options: ["Computer Assisted Training", "Change Annotation Tool", "Central Analysis Terminal", "Coordinate Adjustment Tool"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "CAT stands for Change Annotation Tool - used for annotating and tagging changes in road conditions."
+                    },
+                    {
+                        question: "What is an RSD in the CAT tool?",
+                        options: ["Road Safety Data", "Road Segment Data", "Regional Street Directory", "Route Signal Detection"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "RSD = Road Segment Data, collected during drives and shown as dots and lines on a map."
+                    },
+                    {
+                        question: "A change in RSD will be considered valid only if it occurs in how many RSDs or more?",
+                        options: ["1 RSD", "2 RSDs", "3 RSDs", "5 RSDs"],
+                        correct: 2,
+                        difficulty: "medium",
+                        explanation: "A change in RSD will be considered as one only if it occurs in 3 RSDs or more."
+                    },
+                    {
+                        question: "What does the black polygon in CAT represent?",
+                        options: ["Areas to ignore", "The focus area for changes", "Road boundaries", "Traffic signals"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "The black polygon highlights the area we focus on. Anything outside this area is ignored."
+                    },
+                    {
+                        question: "What is the margin width on both sides of the polygon in CAT?",
+                        options: ["5 meters", "8 meters", "12 meters", "15 meters"],
+                        correct: 2,
+                        difficulty: "hard",
+                        explanation: "On both sides of the polygon, there are 12-meter margins, marked with dotted lines."
+                    },
+                    {
+                        question: "What color represents dashed lane marks in CAT?",
+                        options: ["Pink", "Purple", "Yellow", "Green"],
+                        correct: 2,
+                        difficulty: "medium",
+                        explanation: "Lm_dashed (white or yellow) - a dashed lane mark, will be yellow in CAT."
+                    },
+                    {
+                        question: "What color represents solid lane marks in CAT?",
+                        options: ["Pink", "Purple", "Yellow", "Green"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "Lm_solid - a solid lane mark, will be pink in CAT."
+                    },
+                    {
+                        question: "What does RTG represent in CAT?",
+                        options: ["Road Traffic Guide", "The drivable path the car took", "Road Type Geometry", "Regional Traffic Grid"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "RTG is the drivable path that the car took, the drive itself, shown as a green dot."
+                    },
+                    {
+                        question: "What shape represents a Traffic Light (TFL) in CAT?",
+                        options: ["Circle", "Square", "Diamond", "Pentagon"],
+                        correct: 2,
+                        difficulty: "medium",
+                        explanation: "TFL (Traffic Light) is shown as a black Diamond shape in CAT."
+                    },
+                    {
+                        question: "What keyboard shortcut saves the current phase in CAT?",
+                        options: ["Ctrl + S", "S", "F5", "Enter"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "The keyboard shortcut 'S' saves the current phase in CAT."
+                    },
+                    {
+                        question: "What is a 'Phase' in CAT?",
+                        options: ["A type of road marking", "A period of consistent road conditions", "A traffic signal timing", "A map layer"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Phase represents a distinct period within the timeline of a road patch where road conditions are consistent."
+                    },
+                    {
+                        question: "What tag should be used when two identical phases have a different phase between them?",
+                        options: ["unknown", "temporary_change", "inconsistent", "phase_error"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "If phase(n + 2) == phase n → phase (n+1) should get the tag temporary_change."
+                    },
+                    {
+                        question: "What does LPC stand for in CAT tagging?",
+                        options: ["Lane Position Change", "Legal Position Correction", "Lane Paint Change", "Lateral Path Correction"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "LPC stands for Lane Position Change - a change in the position of an existing lane."
+                    },
+                    {
+                        question: "What is the recommended RSDs_step range when starting to move through a patch?",
+                        options: ["1 to 5", "5 to 10", "10 to 15", "20 to 30"],
+                        correct: 2,
+                        difficulty: "hard",
+                        explanation: "Set the RSDs_step between 10 to 15 RSDs when starting to move through a patch."
+                    },
+                    {
+                        question: "How many times should an annotator go through the entire patch minimum?",
+                        options: ["Once", "Twice", "Three times", "Four times"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Annotator should go through the entire patch at least twice - once with RE disabled, once with LM disabled."
+                    },
+                    {
+                        question: "What keyboard shortcut is used to open the tag dropdown list?",
+                        options: ["G", "T", "L", "Tab"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Press 'T' on the keyboard to open the tag dropdown list."
+                    },
+                    {
+                        question: "What should be tagged when a TFL change occurs outside a junction?",
+                        options: ["TFL_app", "TFL_not_app", "TFL_unknown", "TFL_external"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "TFL_not_app is used when a TFL change occurs outside a junction (mid-block pedestrian crossing, highway temporary TFL, etc.)."
+                    },
+                    {
+                        question: "What does the 'Flip' function do in CAT?",
+                        options: ["Rotates the map", "Toggles between Show Curr Phase and Show Next Phase", "Inverts colors", "Flips the timeline"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Flip toggles between 'Show Curr phase' and 'Show Next phase' when one is on."
+                    },
+                    {
+                        question: "What keyboard shortcut toggles the grid in CAT?",
+                        options: ["G", "T", "R", "V"],
+                        correct: 0,
+                        difficulty: "easy",
+                        explanation: "Press 'G' to toggle the grid on/off in CAT."
+                    },
+                    {
+                        question: "When should changes outside the black polygon be considered?",
+                        options: ["Never", "Always", "Only when the polygon doesn't cover the whole road width", "Only for traffic lights"],
+                        correct: 2,
+                        difficulty: "hard",
+                        explanation: "In cases where the polygon isn't covering the whole road and some of it is outside, we expand the polygon imaginary in width."
+                    }
+                ]
+            },
+            
+            "dp-entities": {
+                name: "DP & Entities",
+                icon: "🗺️",
+                description: "Drivable Paths and Entity mapping for HD maps",
+                category: "core",
+                taskLeader: "Omri Cohen",
+                questions: [
+                    {
+                        question: "What does DP stand for in the context of mapping?",
+                        options: ["Data Point", "Drivable Path", "Digital Projection", "Detection Protocol"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "DP stands for Drivable Path - linear elements representing vehicle trajectories."
+                    },
+                    {
+                        question: "How many specialized entity types are there in the DP Entities task?",
+                        options: ["5+", "10+", "15+", "20+"],
+                        correct: 2,
+                        difficulty: "medium",
+                        explanation: "There are 15+ specialized entity types including lanes, junctions, shoulders, parking, etc."
+                    },
+                    {
+                        question: "What does SPC stand for in DP sub-tasks?",
+                        options: ["Speed Position Control", "Safe Path Control", "Signal Processing Center", "Standard Protocol Check"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "SPC stands for Safe Path Control - selective entity annotation for validation and algorithm training."
+                    },
+                    {
+                        question: "Where should new team members start in DP Entities?",
+                        options: ["DPE - Rules", "DPE - Newcomers", "DPE - Q&A", "DPE - Sub-Tasks"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "New team members should start with the DPE - Newcomers guide for onboarding."
+                    },
+                    {
+                        question: "What is the primary purpose of Entity Polygons?",
+                        options: ["Decoration", "Area-based features categorizing road elements", "Speed limits only", "Traffic counting"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Entity Polygons are area-based features categorizing road elements with semantic meaning."
+                    },
+                    {
+                        question: "What does SJ stand for in DP sub-tasks?",
+                        options: ["Speed Junction", "Safe Junctions", "Signal Junction", "Standard Junction"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "SJ stands for Safe Junctions - junction-specific validation task."
+                    }
+                ]
+            },
+            
+            "fpa": {
+                name: "FPA (Full Path Annotation)",
+                icon: "📍",
+                description: "Perfecting annotation work for FPA client",
+                category: "core",
+                taskLeader: "Ariel Avni",
+                questions: [
+                    {
+                        question: "What does FPA stand for?",
+                        options: ["Final Path Analysis", "Full Path Annotation", "Forward Position Assessment", "Feature Point Alignment"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "FPA stands for Full Path Annotation - annotation work for the FPA client."
+                    },
+                    {
+                        question: "In the FPA training plan, what is covered in Week 1-2?",
+                        options: ["Live maps", "Tool introduction and editing objects", "Specialization tasks", "Final assessment"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Week 1-2 covers tool introduction and how to edit all relevant objects."
+                    },
+                    {
+                        question: "What tool is primarily used for FPA perfecting?",
+                        options: ["CAT", "MapMarker", "NEVO", "Google Maps"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "MapMarker is the primary tool used for FPA perfecting tasks."
+                    },
+                    {
+                        question: "What does the Side Panel in MapMarker include?",
+                        options: ["Only the zoom controls", "Save Data changeset, Inspector, Data Source, 3D View", "Only navigation buttons", "Traffic signals only"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "The Side Panel includes Save Data changeset, Inspector, Data Source, and 3D View buttons."
+                    },
+                    {
+                        question: "In Week 6 of FPA training, what do AIPs do?",
+                        options: ["Only reading documentation", "Practice on live maps - 5 tiles each", "Tool setup only", "Written exam"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Week 6, each AIP does 5 live map tiles, proceeding only after internal and external QC approval."
+                    },
+                    {
+                        question: "Which task is covered on Days 17-19 of FPA training?",
+                        options: ["Modeling", "DP Task and Sign Relevancy", "Road Behavior", "Relevancy Task"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Days 17-19 cover DP Task and Sign Relevancy in the FPA training program."
+                    }
+                ]
+            },
+            
+            "barak-maps": {
+                name: "Barak Maps Perfecting",
+                icon: "🗺️",
+                description: "Empty Maps Perfecting using Topview imagery",
+                category: "core",
+                taskLeader: "Chana Barenbaum",
+                questions: [
+                    {
+                        question: "What is the ONLY reference source allowed for Barak Empty Maps Perfecting?",
+                        options: ["Google Street View", "Satellite imagery", "Topview Layer 0", "GT data"],
+                        correct: 2,
+                        explanation: "Topview Layer 0 serves as the exclusive reference for all object identification and marking."
+                    },
+                    {
+                        question: "What keyboard shortcut activates the Road Edge tool?",
+                        options: ["E", "R", "L", "D"],
+                        correct: 1,
+                        explanation: "Press 'R' to activate the Road Edge tool in Barak Maps Perfecting."
+                    },
+                    {
+                        question: "What keyboard shortcut activates the Lane Mark tool?",
+                        options: ["M", "L", "K", "N"],
+                        correct: 1,
+                        explanation: "Press 'L' to activate the Lane Mark tool."
+                    },
+                    {
+                        question: "What keyboard shortcut is used for Stop Line?",
+                        options: ["S", "O", "P", "L"],
+                        correct: 1,
+                        explanation: "Press 'O' to activate the Stop Line tool."
+                    },
+                    {
+                        question: "What keyboard shortcut is used for Crosswalk?",
+                        options: ["X", "W", "C", "K"],
+                        correct: 2,
+                        explanation: "Press 'C' to activate the Crosswalk tool."
+                    },
+                    {
+                        question: "How should parking area perpendicular lane marks be classified?",
+                        options: ["SOLID", "DASH", "NON-SEMANTIC", "DOUBLE_SOLID"],
+                        correct: 2,
+                        explanation: "Perpendicular LMs in parking areas should be classified as NON-SEMANTIC."
+                    },
+                    {
+                        question: "What should you do when text on the road is unclear and illegible?",
+                        options: ["Mark it as UNKNOWN", "Skip marking it", "Guess the text", "Mark as OTHER"],
+                        correct: 1,
+                        explanation: "When road text is unclear and illegible, do not mark it."
+                    },
+                    {
+                        question: "What tag should be used when an X is painted over a directional arrow?",
+                        options: ["X Sign", "RA Cancelled", "Arrow Void", "Direction Unknown"],
+                        correct: 1,
+                        explanation: "When an X is painted over a directional arrow, mark it as RA Cancelled."
+                    },
+                    {
+                        question: "What is the keyboard shortcut for the Extrude Tool?",
+                        options: ["E", "X", "W", "T"],
+                        correct: 2,
+                        explanation: "Press 'W' to use the Extrude Tool for adjusting rectangle dimensions."
+                    },
+                    {
+                        question: "What should GT Mode be set to during Barak Maps Perfecting?",
+                        options: ["OFF", "ON at all times", "Auto", "Optional"],
+                        correct: 1,
+                        explanation: "GT Mode must be ON at all times during Barak Maps Perfecting."
+                    },
+                    {
+                        question: "When marking bicycle lanes, how should the lane marks on both sides be classified?",
+                        options: ["SOLID", "LANE_MARK_DASH", "NON-SEMANTIC", "BIKE_LANE"],
+                        correct: 1,
+                        explanation: "Mark lane marks on both sides of bicycle lanes as LANE_MARK_DASH."
+                    },
+                    {
+                        question: "What keyboard shortcut is used for Road Arrow?",
+                        options: ["R", "A", "W", "O"],
+                        correct: 1,
+                        explanation: "Press 'A' to activate the Road Arrow tool."
+                    }
+                ]
+            },
+
+            "modeling": {
+                name: "Modeling Tasks",
+                icon: "🏗️",
+                description: "RE, LM, CW, SL, Speed Bumps modeling",
+                category: "core",
+                taskLeader: "Nitzan Tzuker",
+                questions: [
+                    {
+                        question: "What does RE stand for in Modeling?",
+                        options: ["Road Element", "Road Edge", "Route Endpoint", "Regional Entry"],
+                        correct: 1,
+                        explanation: "RE stands for Road Edge - the boundary of the road."
+                    },
+                    {
+                        question: "What does LM stand for in Modeling?",
+                        options: ["Lane Mark", "Left Margin", "Linear Mapping", "Location Marker"],
+                        correct: 0,
+                        explanation: "LM stands for Lane Mark - markings between lanes."
+                    },
+                    {
+                        question: "What does CW stand for in Modeling?",
+                        options: ["Center Width", "Crosswalk", "Curved Way", "Control Width"],
+                        correct: 1,
+                        explanation: "CW stands for Crosswalk - pedestrian crossing areas."
+                    },
+                    {
+                        question: "What does SL stand for in Modeling?",
+                        options: ["Speed Limit", "Stop Line", "Side Lane", "Signal Line"],
+                        correct: 1,
+                        explanation: "SL stands for Stop Line - the painted line where vehicles should stop."
+                    },
+                    {
+                        question: "What does SB stand for in Modeling?",
+                        options: ["Side Barrier", "Speed Bump", "Signal Box", "Street Border"],
+                        correct: 1,
+                        explanation: "SB stands for Speed Bump - traffic calming features."
+                    },
+                    {
+                        question: "What tool is used for spline editing in Modeling?",
+                        options: ["Polygon tool", "Spline tool", "Line tool", "Rectangle tool"],
+                        correct: 1,
+                        explanation: "The Spline tool is used for editing road edges and lane marks in Modeling."
+                    }
+                ]
+            },
+            
+            // ============ ROAD BEHAVIOR ============
+            "legal-speed": {
+                name: "Legal Speed",
+                icon: "🚗",
+                description: "Speed limit annotation and rules",
+                category: "core",
+                taskLeader: "Segev Tsafrir",
+                questions: [
+                    {
+                        question: "What does LS stand for?",
+                        options: ["Lane Segment", "Legal Speed", "Left Side", "Line Start"],
+                        correct: 1,
+                        explanation: "LS stands for Legal Speed - the speed limit for a road segment."
+                    },
+                    {
+                        question: "What tool is used for Legal Speed editing?",
+                        options: ["CAT", "MapMarker", "NEVO", "Photopea"],
+                        correct: 1,
+                        explanation: "MapMarker is used for Legal Speed editing tasks."
+                    },
+                    {
+                        question: "In Legal Speed annotation, what does 'propagation' refer to?",
+                        options: ["Sign visibility", "How speed continues through junctions", "Speed limit changes", "Lane merging"],
+                        correct: 1,
+                        explanation: "Propagation refers to how speed limits continue (or don't) when going through junctions."
+                    },
+                    {
+                        question: "What is the purpose of the Junction Workflow for Legal Speed?",
+                        options: ["Count traffic", "Determine how speed propagates through junctions", "Measure junction size", "Count lanes"],
+                        correct: 1,
+                        explanation: "The Junction Workflow helps determine how speed limits propagate through junctions based on country rules."
+                    },
+                    {
+                        question: "What does 'City Entrance' (CE) indicate for Legal Speed?",
+                        options: ["A traffic sign", "Start of urban speed limits", "Highway entrance", "Parking zone"],
+                        correct: 1,
+                        explanation: "City Entrance (CE) indicates the start of urban speed limits in many countries."
+                    },
+                    {
+                        question: "What does 'City Exit' (CX) indicate for Legal Speed?",
+                        options: ["End of road", "Return to rural/higher speed limits", "Parking exit", "Dead end"],
+                        correct: 1,
+                        explanation: "City Exit (CX) indicates returning to rural or higher speed limits."
+                    },
+                    {
+                        question: "In Germany, does speed propagate when going STRAIGHT through a junction?",
+                        options: ["Never", "Yes", "Only on highways", "Only at night"],
+                        correct: 1,
+                        explanation: "In Germany, speed DOES propagate (continue) when going straight through a junction."
+                    },
+                    {
+                        question: "What should be checked when a speed limit sign is partially obscured?",
+                        options: ["Ignore it", "Use GT/Street View to verify the sign", "Assume standard limit", "Mark as unknown"],
+                        correct: 1,
+                        explanation: "When a sign is partially obscured, use Ground Truth (GT) or Street View to verify the actual speed limit."
+                    }
+                ]
+            },
+            
+            "lane-type": {
+                name: "Lane Type",
+                icon: "🛤️",
+                description: "Lane type annotation and classification",
+                category: "core",
+                taskLeader: "Segev Tsafrir",
+                questions: [
+                    {
+                        question: "What tool is used to edit lane types?",
+                        options: ["Line tool", "Generic Polygon", "Rectangle tool", "Spline tool"],
+                        correct: 1,
+                        explanation: "Lane types are edited using generic polygons in the Inspector tab."
+                    },
+                    {
+                        question: "What keyboard shortcut creates a Generic Polygon?",
+                        options: ["P", "G", "L", "R"],
+                        correct: 1,
+                        explanation: "Press 'G' to create a Generic Polygon for lane type editing."
+                    },
+                    {
+                        question: "What does PTL stand for in lane types?",
+                        options: ["Primary Traffic Lane", "Public Transport Lane", "Painted Traffic Line", "Protected Turn Lane"],
+                        correct: 1,
+                        explanation: "PTL stands for Public Transport Lane (Bus Lane)."
+                    },
+                    {
+                        question: "What does HOV stand for?",
+                        options: ["High Order Vehicle", "Heavy Occupancy Van", "High-Occupancy Vehicle", "Highway Only Vehicle"],
+                        correct: 2,
+                        explanation: "HOV stands for High-Occupancy Vehicle lane."
+                    },
+                    {
+                        question: "What is a 'Suicide Lane'?",
+                        options: ["A dangerous unmarked road", "A center turn lane usable from both directions", "A closed lane", "An emergency lane"],
+                        correct: 1,
+                        explanation: "A Suicide Lane is a marked center lane allowing vehicles from either direction to make left turns."
+                    },
+                    {
+                        question: "What connects RART 0 to RART 0 or RART 0 to Not RART 0 with only 1 lane?",
+                        options: ["Express Lane", "RAMP", "Suicide Lane", "HOV Lane"],
+                        correct: 1,
+                        explanation: "RAMP connects RART 0 to RART 0, or RART 0 to Not RART 0 and must have only 1 lane."
+                    },
+                    {
+                        question: "What is the purpose of a Deceleration Lane?",
+                        options: ["Speed up for highway entry", "Provide space for vehicles to slow down when exiting", "Emergency stopping", "Pedestrian crossing"],
+                        correct: 1,
+                        explanation: "Deceleration lanes provide safe space for vehicles exiting a major roadway to reduce speed."
+                    },
+                    {
+                        question: "What distinguishes a Shared Bike Lane from a Bike Trail?",
+                        options: ["Color of markings", "Shared Bike Lane allows motor vehicles, Bike Trail does not", "Location only", "Width of lane"],
+                        correct: 1,
+                        explanation: "A Shared Bike Lane shares space with motor vehicles, while a Bike Trail is exclusively for bicycles."
+                    },
+                    {
+                        question: "What is a Railroad Crossing lane type used for?",
+                        options: ["Train stations", "Where railway intersects with a street", "Underground tunnels", "Bus stops near trains"],
+                        correct: 1,
+                        explanation: "Railroad Crossing marks a road segment where a railway intersects with a street."
+                    },
+                    {
+                        question: "What polygon type should be used when unsure about the lane type classification?",
+                        options: ["UNKNOWN", "UNCERTAIN POLYGON", "OTHER", "SKIP"],
+                        correct: 1,
+                        explanation: "Use UNCERTAIN POLYGON when not sure if a case fits the definition or belongs to multiple definitions."
+                    },
+                    {
+                        question: "What background should be set in Data Sources for Lane Type task?",
+                        options: ["OpenStreetMap", "Google Maps Satellite", "Bing Maps", "Topview"],
+                        correct: 1,
+                        explanation: "Set the background to 'Google Maps Satellite' in the Data source section."
+                    },
+                    {
+                        question: "What is an Acceleration Lane used for?",
+                        options: ["Slowing down when exiting", "Speeding up when entering a highway", "Emergency stops", "Pedestrian access"],
+                        correct: 1,
+                        explanation: "Acceleration lanes provide space for vehicles entering a major roadway to increase speed before merging."
+                    }
+                ]
+            },
+            
+            "road-types-rart": {
+                name: "Road Types (RART)",
+                icon: "🛣️",
+                description: "Road type classification system",
+                category: "core",
+                taskLeader: "Segev Tsafrir",
+                questions: [
+                    {
+                        question: "What does RART stand for?",
+                        options: ["Road Area Reference Type", "Road Attribute Road Type", "Regional Area Road Type", "Road Assessment Rating Type"],
+                        correct: 1,
+                        explanation: "RART is the Road Attribute Road Type classification system."
+                    },
+                    {
+                        question: "What is RART 0?",
+                        options: ["Unknown road", "Separated multi-lane road with 3KM minimum length", "Single lane road", "Unpaved road"],
+                        correct: 1,
+                        explanation: "RART 0 is a Separated multi-lane road with physical separation, 2+ lanes, and minimum 3KM length."
+                    },
+                    {
+                        question: "What is the minimum length requirement for RART 0?",
+                        options: ["1 KM", "2 KM", "3 KM", "5 KM"],
+                        correct: 2,
+                        explanation: "RART 0 requires a minimum length of 3 KM between junctions."
+                    },
+                    {
+                        question: "What RART is used when RART 0 is less than 3KM between junctions?",
+                        options: ["RART 0", "RART 1", "RART 2", "RART 15"],
+                        correct: 1,
+                        explanation: "When RART 0 is less than 3KM between junctions, it's probably RART 1."
+                    },
+                    {
+                        question: "What does RART 15 represent?",
+                        options: ["Highway", "Urban road", "Unknown/placeholder", "Roundabout"],
+                        correct: 2,
+                        explanation: "RART 15 is the placeholder for 'unknown' road type."
+                    },
+                    {
+                        question: "What characterizes RART 2?",
+                        options: ["Multi-lane with physical separation", "Single lane with physical separation", "Multi-lane painted separation", "No separation"],
+                        correct: 1,
+                        explanation: "RART 2 is a single lane road with physical separation from oncoming traffic."
+                    },
+                    {
+                        question: "What characterizes RART 11?",
+                        options: ["Highway", "Not separated - lane mark next to RE", "Multi-lane with RE", "Separated with RE"],
+                        correct: 1,
+                        explanation: "RART 11 is Not separated with lane mark next to RE (Road Edge)."
+                    },
+                    {
+                        question: "What characterizes RART 12?",
+                        options: ["Multi-lane highway", "Not separated - No LM no RE", "Single lane with RE", "Urban road"],
+                        correct: 1,
+                        explanation: "RART 12 is Not separated with no Lane Mark and no Road Edge."
+                    },
+                    {
+                        question: "How far back should RART 1 be tagged when coming from RART 0 to a junction?",
+                        options: ["100m", "150m", "200m", "300m"],
+                        correct: 2,
+                        explanation: "Take 200m back and tag RART 1 when transitioning from RART 0 to a junction."
+                    },
+                    {
+                        question: "How far ahead should RART 1 continue after a junction before returning to RART 0?",
+                        options: ["25m", "50m", "100m", "150m"],
+                        correct: 1,
+                        explanation: "After a junction, take 50m ahead before ending RART 1 and returning to RART 0."
+                    },
+                    {
+                        question: "What is the width threshold for classifying a road as multi-lane when there are no lane markings?",
+                        options: ["4.5m", "5.25m", "6m", "7m"],
+                        correct: 1,
+                        explanation: "A road without lane markings may be multi-lane if width exceeds 5.25m."
+                    },
+                    {
+                        question: "Are solid lane marks an indication of single lanes when going in the same direction?",
+                        options: ["Yes, always", "No, solid marks between same-direction lanes count as multi-lane", "Only on highways", "Only in urban areas"],
+                        correct: 1,
+                        explanation: "Solid lane marks are NOT an indication of single lanes when in the same direction - they count as multi-lane."
+                    }
+                ]
+            },
+            
+            "road-sub-type": {
+                name: "Road Sub Type",
+                icon: "🏷️",
+                description: "Road sub-type classification and annotation",
+                category: "core",
+                taskLeader: "Segev Tsafrir",
+                questions: [
+                    {
+                        question: "What is the purpose of Road Sub Type annotation?",
+                        options: ["Speed limit only", "Classifying specific road characteristics", "Traffic counting", "Lane counting"],
+                        correct: 1,
+                        explanation: "Road Sub Type annotation classifies specific road characteristics beyond the main RART type."
+                    },
+                    {
+                        question: "When should 'Unknown' be used in Road Sub Type?",
+                        options: ["Always", "When we cannot decide on the exact road type", "Never", "Only on highways"],
+                        correct: 1,
+                        explanation: "Unknown is used when we couldn't decide on the exact road type because there's no clear indication."
+                    },
+                    {
+                        question: "What tool is used for Road Sub Type annotation?",
+                        options: ["CAT", "MapMarker", "Excel", "Google Maps"],
+                        correct: 1,
+                        explanation: "MapMarker is used for Road Sub Type annotation."
+                    },
+                    {
+                        question: "How are Road Sub Types marked on DPs?",
+                        options: ["Generic polygons", "Editing the DP properties", "Drawing lines", "Adding pins"],
+                        correct: 1,
+                        explanation: "Road Sub Types are marked by editing the DP properties in MapMarker."
+                    },
+                    {
+                        question: "What is the relationship between RART and Road Sub Type?",
+                        options: ["They are the same", "Road Sub Type provides finer classification within RART", "RART replaces Road Sub Type", "No relationship"],
+                        correct: 1,
+                        explanation: "Road Sub Type provides more detailed classification within the broader RART categories."
+                    }
+                ]
+            },
+            
+            "speed-sign-relevancy": {
+                name: "Speed Sign Relevancy",
+                icon: "🚸",
+                description: "Speed sign detection and DP association",
+                category: "core",
+                taskLeader: "Segev Tsafrir",
+                questions: [
+                    {
+                        question: "What is the purpose of Speed Sign Relevancy?",
+                        options: ["Count signs", "Associate detected speed signs with relevant DPs", "Create new signs", "Delete wrong signs"],
+                        correct: 1,
+                        explanation: "Speed Sign Relevancy associates detected speed signs in MapMarker with the relevant DPs."
+                    },
+                    {
+                        question: "What type of signs are classified as 'e_std' in Speed Sign Relevancy?",
+                        options: ["End of speed zone", "Regular speed signs (implicit)", "Warning signs", "Stop signs"],
+                        correct: 1,
+                        explanation: "Signs with type e_std are regular speed signs (implicit speed signs)."
+                    },
+                    {
+                        question: "What is a 'False detection' in Speed Sign Relevancy?",
+                        options: ["Sign that exists", "MM shows a sign that doesn't exist in GT", "Correct sign reading", "Sign with correct value"],
+                        correct: 1,
+                        explanation: "False detection means MM shows a sign that does not exist in ground truth, or a sign exists but was mis-classified."
+                    },
+                    {
+                        question: "What should be done when a sign needs review?",
+                        options: ["Delete the sign", "Change tile to 'Needs review'", "Ignore it", "Mark as correct"],
+                        correct: 1,
+                        explanation: "Change the tile to 'Needs review' for any cases that need further examination."
+                    },
+                    {
+                        question: "How do you navigate to assigned tasks in Speed Sign Relevancy?",
+                        options: ["Random selection", "Click target button on the far right of the task", "Manual search", "Alphabetical order"],
+                        correct: 1,
+                        explanation: "Press the target button on the far right of your assigned task to navigate to it."
+                    },
+                    {
+                        question: "What is checked during Speed Sign Relevancy?",
+                        options: ["Sign color only", "Sign visibility and DP association accuracy", "Sign size", "Sign age"],
+                        correct: 1,
+                        explanation: "Speed Sign Relevancy checks sign visibility and the accuracy of sign-to-DP associations."
+                    }
+                ]
+            },
+            
+            // ============ ROAD RELEVANCY ============
+            "tfl-relevancy": {
+                name: "TFL Relevancy",
+                icon: "🚦",
+                description: "Traffic Light to Stop Point connections",
+                category: "core",
+                taskLeader: "Ariel Avni",
+                questions: [
+                    {
+                        question: "What does TFL stand for?",
+                        options: ["Traffic Flow Lane", "Traffic Light", "Turn Flow Logic", "Transit Forward Lane"],
+                        correct: 1,
+                        explanation: "TFL stands for Traffic Light."
+                    },
+                    {
+                        question: "What does DPSP stand for?",
+                        options: ["Data Point Signal Position", "Drivable Path Stop Point", "Digital Path System Protocol", "Drive Point Signal Process"],
+                        correct: 1,
+                        explanation: "DPSP stands for Drivable Path Stop Point - where vehicles should stop."
+                    },
+                    {
+                        question: "What color ring indicates a 'Stop' type SP?",
+                        options: ["Blue", "Yellow", "Red", "Green"],
+                        correct: 2,
+                        explanation: "Red ring indicates a Stop type SP."
+                    },
+                    {
+                        question: "What color ring indicates a 'Yield on Green' (YOG) SP?",
+                        options: ["Red", "Blue", "Yellow", "Green"],
+                        correct: 1,
+                        explanation: "Blue ring indicates a Yield on Green (YOG) SP."
+                    },
+                    {
+                        question: "What does YOG stand for?",
+                        options: ["Yield Only Green", "Yield on Green", "Yellow Orange Green", "Your Own Grid"],
+                        correct: 1,
+                        explanation: "YOG stands for Yield on Green - must yield to oncoming traffic even with green light."
+                    },
+                    {
+                        question: "What does ROR stand for?",
+                        options: ["Road Only Route", "Right on Red", "Reverse on Request", "Route Over Road"],
+                        correct: 1,
+                        explanation: "ROR stands for Right on Red - can turn right on red light (common in USA)."
+                    },
+                    {
+                        question: "How do TFLs appear in MapMarker?",
+                        options: ["Red circles", "Black circles", "Blue squares", "Yellow triangles"],
+                        correct: 1,
+                        explanation: "TFLs appear as black circles in the TrafficLight layer in MapMarker."
+                    },
+                    {
+                        question: "What is a 'Hawk TFL'?",
+                        options: ["A bird-shaped TFL", "A pedestrian-controlled TFL that's normally off", "A high-speed TFL", "An emergency TFL"],
+                        correct: 1,
+                        explanation: "A Hawk TFL is always off unless a pedestrian needs to cross - activated on-demand by pedestrians."
+                    },
+                    {
+                        question: "What should be done with duplicate TFLs at the same coordinates?",
+                        options: ["Delete all but one", "Connect ALL duplicate TFL IDs to the SP", "Ignore them", "Mark as error"],
+                        correct: 1,
+                        explanation: "When duplicate TFLs exist at same coordinates, connect ALL duplicate TFL IDs to the SP."
+                    },
+                    {
+                        question: "Where should a YOG SP be placed?",
+                        options: ["At the stop line", "Where oncoming DP meets turning DP", "After the junction", "At the TFL pole"],
+                        correct: 1,
+                        explanation: "Place YOG SP where the oncoming DP meets the turning DP."
+                    },
+                    {
+                        question: "What is 'vehicle_regular' TFL type for?",
+                        options: ["Emergency vehicles", "Regular vehicle traffic", "Pedestrians only", "Buses only"],
+                        correct: 1,
+                        explanation: "vehicle_regular is a TFL intended for regular vehicle traffic."
+                    },
+                    {
+                        question: "What TFL type should be used for traffic lights at railway crossings?",
+                        options: ["vehicle_regular", "railway_xing", "emergency", "warning"],
+                        correct: 1,
+                        explanation: "Use railway_xing for TFLs at railway crossings that flash red when a train approaches."
+                    }
+                ]
+            },
+            
+            "dp2dp-priority": {
+                name: "DP2DP Priority",
+                icon: "↔️",
+                description: "Priority between intersecting drivable paths",
+                category: "core",
+                taskLeader: "Ariel Avni",
+                questions: [
+                    {
+                        question: "What does DP2DP Priority define?",
+                        options: ["Speed limits", "Which vehicle has right-of-way when paths intersect", "Lane width", "Traffic signals"],
+                        correct: 1,
+                        explanation: "DP2DP Priority defines which vehicle has the right-of-way when two driving paths intersect or merge."
+                    },
+                    {
+                        question: "What does a green line indicate in DP2DP priority visualization?",
+                        options: ["No priority", "That DP has priority", "Equal priority", "Unknown"],
+                        correct: 1,
+                        explanation: "Green line indicates that DP has priority over the red DP."
+                    },
+                    {
+                        question: "What does a light purple line indicate in DP2DP priority?",
+                        options: ["High priority", "Low priority", "Equal priority", "No connection"],
+                        correct: 2,
+                        explanation: "Light purple line indicates both DPs have equal priority."
+                    },
+                    {
+                        question: "When should 'equal' priority be assigned?",
+                        options: ["At traffic lights", "Highway merge lanes, 2-lane roundabouts inner vs outer", "At stop signs", "Never"],
+                        correct: 1,
+                        explanation: "Equal priority is used for highway merge lanes, merge before roundabout, 2-lane roundabout inner vs outer lane."
+                    },
+                    {
+                        question: "In a TFL junction with YOG, what priority does the YOG DP have?",
+                        options: ["Highest priority", "Must yield to oncoming traffic", "Equal priority", "No priority rules apply"],
+                        correct: 1,
+                        explanation: "In a TFL junction, a DP with YOG must yield to the oncoming DP - it's NOT equal priority."
+                    },
+                    {
+                        question: "Between right turn and left turn DPs, which has priority?",
+                        options: ["Left turn", "Right turn", "Always equal", "Neither"],
+                        correct: 1,
+                        explanation: "Right turning DP has priority over left turning DP."
+                    },
+                    {
+                        question: "What priority does a DP with a yield/stop sign have?",
+                        options: ["Full priority", "No priority", "Equal priority", "Depends on traffic"],
+                        correct: 1,
+                        explanation: "DPs with yield/stop signs don't have priority."
+                    },
+                    {
+                        question: "What tag should be added for overlapping DPs?",
+                        options: ["error_dp", "overlapping_DP", "duplicate_dp", "merged_dp"],
+                        correct: 1,
+                        explanation: "Use overlapping_DP tag when two DPs overlap each other."
+                    },
+                    {
+                        question: "What special rule applies in Hamburg deep urban areas?",
+                        options: ["No priority rules", "Right-side traffic has priority", "Left-side traffic has priority", "All equal"],
+                        correct: 1,
+                        explanation: "In Hamburg deep urban areas, every DP coming from your relative right has priority over you."
+                    },
+                    {
+                        question: "What tag should be added when encountering a Hawk TFL junction?",
+                        options: ["hawk_junction", "hawk_tfl", "ped_tfl", "special_tfl"],
+                        correct: 1,
+                        explanation: "Add 'hawk_tfl' to the situation field and treat as non-TFL junction for priority."
+                    }
+                ]
+            },
+            
+            "road-relevancy": {
+                name: "Road Relevancy Overview",
+                icon: "🔗",
+                description: "SP Protects, Junction Semantics, Signs Relevancy",
+                category: "core",
+                taskLeader: "Ariel Avni",
+                questions: [
+                    {
+                        question: "What does SP Protects define?",
+                        options: ["Speed limits", "Reasons for Stop Points existence", "Signal positions", "Sign placement"],
+                        correct: 1,
+                        explanation: "SP Protects defines the reasons for Stop Points existence."
+                    },
+                    {
+                        question: "What is CW Priority used for?",
+                        options: ["Speed control", "Pedestrian vs vehicle right-of-way at crosswalks", "Lane merging", "Traffic signals"],
+                        correct: 1,
+                        explanation: "CW Priority defines pedestrian vs vehicle priority at crosswalks."
+                    },
+                    {
+                        question: "What does Signs Relevancy cover?",
+                        options: ["Sign manufacturing", "Sign-to-SP relationships perfecting", "Sign maintenance", "Sign colors"],
+                        correct: 1,
+                        explanation: "Signs Relevancy covers perfecting sign-to-SP relationships."
+                    },
+                    {
+                        question: "What is Junction Semantics about?",
+                        options: ["Junction size", "Defining junction behavior rules", "Junction counting", "Junction naming"],
+                        correct: 1,
+                        explanation: "Junction Semantics defines junction behavior rules."
+                    },
+                    {
+                        question: "What does MM stand for in Road Relevancy?",
+                        options: ["Map Manager", "MapMarker", "Movement Monitor", "Mark Manager"],
+                        correct: 1,
+                        explanation: "MM stands for MapMarker - the primary editing tool."
+                    },
+                    {
+                        question: "What is the first step for new team members in Road Relevancy?",
+                        options: ["Start editing immediately", "Read TFL Relevancy sub pages completely", "Take an exam", "Review DP2DP only"],
+                        correct: 1,
+                        explanation: "New team members should first read the TFL Relevancy sub pages completely."
+                    }
+                ]
+            },
+            
+            // ============ GENERAL KNOWLEDGE ============
+            "common-acronyms": {
+                name: "Common Acronyms",
+                icon: "📝",
+                description: "Essential terminology and abbreviations",
+                category: "general",
+                taskLeader: "General Knowledge",
+                questions: [
+                    {
+                        question: "What does REM stand for?",
+                        options: ["Road Edge Marking", "Road Experience Management", "Regional Engineering Map", "Route Estimation Model"],
+                        correct: 1,
+                        explanation: "REM stands for Road Experience Management."
+                    },
+                    {
+                        question: "What does GT stand for?",
+                        options: ["Grand Total", "Ground Truth", "General Traffic", "Geographic Tool"],
+                        correct: 1,
+                        explanation: "GT stands for Ground Truth - reference imagery/data."
+                    },
+                    {
+                        question: "What does AIP stand for?",
+                        options: ["Advanced Image Processor", "Associate Image Processor", "Automated Imaging Platform", "Assigned Image Project"],
+                        correct: 1,
+                        explanation: "AIP stands for Associate Image Processor (PH team workers)."
+                    },
+                    {
+                        question: "What does QC stand for?",
+                        options: ["Quick Check", "Quality Checker", "Query Controller", "Queue Count"],
+                        correct: 1,
+                        explanation: "QC stands for Quality Checker."
+                    },
+                    {
+                        question: "What does SME stand for?",
+                        options: ["Senior Map Editor", "Subject Matter Expert", "System Mapping Engineer", "Standard Method Expert"],
+                        correct: 1,
+                        explanation: "SME stands for Subject Matter Expert."
+                    },
+                    {
+                        question: "What does STL stand for?",
+                        options: ["Standard Traffic Lane", "Senior Team Lead", "Stop Traffic Light", "Street Traffic Line"],
+                        correct: 1,
+                        explanation: "STL stands for Senior Team Lead."
+                    },
+                    {
+                        question: "What does VB stand for?",
+                        options: ["Visual Border", "Vehicle Blinking", "Vertical Boundary", "Verified Base"],
+                        correct: 1,
+                        explanation: "VB stands for Vehicle Blinking."
+                    },
+                    {
+                        question: "What does EOM stand for?",
+                        options: ["End of Map", "Edge of Motorway", "Estimated Output Metric", "Entry on Main"],
+                        correct: 0,
+                        explanation: "EOM stands for End of Map."
+                    },
+                    {
+                        question: "What does RRC stand for?",
+                        options: ["Road Route Center", "Railroad Crossing", "Regional Road Code", "Route Reference Check"],
+                        correct: 1,
+                        explanation: "RRC stands for Railroad Crossing."
+                    },
+                    {
+                        question: "What does LIDAR stand for?",
+                        options: ["Light Detection and Ranging", "Linear Data Recording", "Location Identification Radar", "Laser Image Detection Array"],
+                        correct: 0,
+                        explanation: "LIDAR stands for Light Detection and Ranging."
+                    },
+                    {
+                        question: "What does ADAS stand for?",
+                        options: ["Automated Driving Assistance Software", "Advanced Driver-Assistance Systems", "Autonomous Detection and Sensing", "Adaptive Driving Analysis System"],
+                        correct: 1,
+                        explanation: "ADAS stands for Advanced Driver-Assistance Systems."
+                    },
+                    {
+                        question: "What does UUID stand for?",
+                        options: ["Unique User Identification", "Universal Unique Identifier", "Universally Unique Identifier", "Unit User ID"],
+                        correct: 2,
+                        explanation: "UUID stands for Universally Unique Identifier."
+                    },
+                    {
+                        question: "What does RB stand for?",
+                        options: ["Road Barrier", "RoadBook", "Route Base", "Reference Boundary"],
+                        correct: 1,
+                        explanation: "RB stands for RoadBook."
+                    },
+                    {
+                        question: "What does HW stand for?",
+                        options: ["Hardware", "HighWay", "High Width", "Heavy Weight"],
+                        correct: 1,
+                        explanation: "HW stands for HighWay."
+                    },
+                    {
+                        question: "What does TV stand for in mapping?",
+                        options: ["Television", "Top View", "Traffic Volume", "Terrain Visualization"],
+                        correct: 1,
+                        explanation: "TV stands for Top View in mapping context."
+                    },
+                    {
+                        question: "What does JTL stand for?",
+                        options: ["Junction Traffic Light", "Junior Team Leader", "Joint Task Lead", "Junction Type Label"],
+                        correct: 1,
+                        explanation: "JTL stands for Junior Team Leader."
+                    }
+                ]
+            },
+            
+            "workflow-processes": {
+                name: "Workflow & Processes",
+                icon: "⚙️",
+                description: "Task management and QC workflow",
+                category: "general",
+                taskLeader: "General Knowledge",
+                questions: [
+                    {
+                        question: "What color indicates a 'New' tile status?",
+                        options: ["Blue", "Grey", "Green", "Yellow"],
+                        correct: 1,
+                        explanation: "A 'New' tile is shown in grey color."
+                    },
+                    {
+                        question: "What color indicates an 'In-progress' tile?",
+                        options: ["Blue", "Grey", "Green", "Yellow"],
+                        correct: 3,
+                        explanation: "An 'In-progress' tile is shown in yellow color."
+                    },
+                    {
+                        question: "What color indicates a 'Done' tile?",
+                        options: ["Blue", "Grey", "Green", "Yellow"],
+                        correct: 0,
+                        explanation: "A 'Done' tile is shown in blue color."
+                    },
+                    {
+                        question: "What color indicates an 'Approved' tile?",
+                        options: ["Blue", "Orange", "Green", "Pink"],
+                        correct: 2,
+                        explanation: "An 'Approved' tile is shown in green color."
+                    },
+                    {
+                        question: "What color indicates a 'QC-rejected' tile?",
+                        options: ["Red", "Orange", "Pink", "Grey"],
+                        correct: 2,
+                        explanation: "A 'QC-rejected' tile is shown in pink color."
+                    },
+                    {
+                        question: "What color indicates a 'QC-approved' tile?",
+                        options: ["Green", "Orange", "Blue", "Yellow"],
+                        correct: 1,
+                        explanation: "A 'QC-approved' tile is shown in orange color."
+                    },
+                    {
+                        question: "What does an 'Error' task object indicate?",
+                        options: ["System error", "A specific mistake that needs fixing", "Connection problem", "Data corruption"],
+                        correct: 1,
+                        explanation: "An 'Error' task indicates a specific mistake on a tile that needs fixing."
+                    },
+                    {
+                        question: "What status indicates the AIP fixed the problem?",
+                        options: ["Done", "Fixed", "Approved", "Complete"],
+                        correct: 1,
+                        explanation: "A 'Fixed' status indicates the AIP went over the rejected mistake and fixed the problem."
+                    },
+                    {
+                        question: "What does 'Needs-review' status mean?",
+                        options: ["Waiting for initial review", "AIP did not fix the problem properly", "QC is reviewing", "Task is completed"],
+                        correct: 1,
+                        explanation: "'Needs-review' means AIP did not fix the problem or missed the specific problem that needed fixing."
+                    }
+                ]
+            }
+        };
+
+        // State
+        let selectedTopic = null;
+        let selectedQuestions = [];
+        let quizState = { current: 0, answers: [], showingResults: false };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTopics();
+            setupEventListeners();
+            updateDifficultyCount();
+        });
+
+        function renderTopics() {
+            const categories = {
+                core: document.getElementById('coreTopics'),
+                general: document.getElementById('generalTopics')
+            };
+            
+            // Clear existing topics
+            Object.values(categories).forEach(container => {
+                if (container) container.innerHTML = '';
+            });
+
+            Object.entries(questionBanks).forEach(([key, topic]) => {
+                const container = categories[topic.category];
+                if (container) {
+                    // Get filtered question count
+                    const filteredQuestions = getFilteredQuestions(key);
+                    const totalQuestions = topic.questions.length;
+                    const filteredCount = filteredQuestions.length;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'topic-card';
+                    card.dataset.topic = key;
+                    
+                    // Disable card if no questions match filter
+                    if (filteredCount === 0) {
+                        card.style.opacity = '0.4';
+                        card.style.pointerEvents = 'none';
+                    }
+                    
+                    const taskLeaderHtml = topic.taskLeader ? `
+                        <div class="task-leader">
+                            <span class="leader-label">👤 Task Lead:</span>
+                            <span class="leader-name">${topic.taskLeader}</span>
+                        </div>
+                    ` : '';
+                    
+                    // Show filtered count vs total
+                    const countDisplay = selectedDifficulty === 'all' 
+                        ? `${totalQuestions} questions`
+                        : `${filteredCount}/${totalQuestions} questions`;
+                    
+                    card.innerHTML = `
+                        <div class="icon">${topic.icon}</div>
+                        <h3>${topic.name}</h3>
+                        <p>${topic.description}</p>
+                        <div class="question-count">${countDisplay}</div>
+                        ${taskLeaderHtml}
+                    `;
+                    card.addEventListener('click', () => selectTopic(key));
+                    container.appendChild(card);
+                }
+            });
+            
+            // Re-select previously selected topic if still valid
+            if (selectedTopic) {
+                const filteredCount = getFilteredQuestions(selectedTopic).length;
+                if (filteredCount > 0) {
+                    document.querySelector(`[data-topic="${selectedTopic}"]`)?.classList.add('selected');
+                } else {
+                    selectedTopic = null;
+                    document.getElementById('toStep2').disabled = true;
+                }
+            }
+        }
+
+        function selectTopic(topicKey) {
+            document.querySelectorAll('.topic-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-topic="${topicKey}"]`).classList.add('selected');
+            selectedTopic = topicKey;
+            document.getElementById('toStep2').disabled = false;
+            updateDifficultyCount();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('toStep2').addEventListener('click', () => {
+                if (selectedTopic) {
+                    populateQuestions();
+                    goToStep(2);
+                }
+            });
+            
+            document.getElementById('toStep3').addEventListener('click', () => {
+                if (selectedQuestions.length > 0) {
+                    renderPreview();
+                    goToStep(3);
+                }
+            });
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.card').forEach((card, i) => {
+                card.classList.toggle('active', i === step - 1);
+            });
+            
+            document.querySelectorAll('.progress-step').forEach((prog, i) => {
+                prog.classList.remove('active', 'completed');
+                if (i < step - 1) prog.classList.add('completed');
+                if (i === step - 1) prog.classList.add('active');
+            });
+        }
+
+        function populateQuestions() {
+            const topic = questionBanks[selectedTopic];
+            const list = document.getElementById('questionList');
+            list.innerHTML = '';
+            
+            // Get filtered questions based on difficulty
+            const filteredQuestions = getFilteredQuestions(selectedTopic);
+            
+            // Store original indices of filtered questions
+            filteredQuestionIndices = [];
+            topic.questions.forEach((q, i) => {
+                const diff = q.difficulty || assignDifficulty(q, i, topic.questions.length);
+                if (selectedDifficulty === 'all' || diff === selectedDifficulty) {
+                    filteredQuestionIndices.push(i);
+                }
+            });
+            
+            selectedQuestions = [...filteredQuestionIndices];
+            
+            filteredQuestionIndices.forEach((originalIndex, displayIndex) => {
+                const q = topic.questions[originalIndex];
+                const diff = q.difficulty || assignDifficulty(q, originalIndex, topic.questions.length);
+                
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.dataset.index = originalIndex;
+                item.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-text">
+                            ${displayIndex + 1}. ${q.question}
+                            <span class="difficulty-badge ${diff}">${diff}</span>
+                        </div>
+                        <div class="question-toggle active" onclick="toggleQuestion(${originalIndex})"></div>
+                    </div>
+                    <div class="question-options">
+                        ${q.options.map((opt, j) => `
+                            <div class="${j === q.correct ? 'correct-option' : ''}">${String.fromCharCode(65 + j)}) ${opt}</div>
+                        `).join('')}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            
+            updateStats();
+        }
+        
+        let filteredQuestionIndices = [];
+
+        function toggleQuestion(index) {
+            const toggle = document.querySelector(`[data-index="${index}"] .question-toggle`);
+            const item = document.querySelector(`[data-index="${index}"]`);
+            
+            if (selectedQuestions.includes(index)) {
+                selectedQuestions = selectedQuestions.filter(i => i !== index);
+                toggle.classList.remove('active');
+                item.classList.add('excluded');
+            } else {
+                selectedQuestions.push(index);
+                selectedQuestions.sort((a, b) => a - b);
+                toggle.classList.add('active');
+                item.classList.remove('excluded');
+            }
+            updateStats();
+        }
+
+        function selectAllQuestions() {
+            selectedQuestions = [...filteredQuestionIndices];
+            document.querySelectorAll('.question-toggle').forEach(t => t.classList.add('active'));
+            document.querySelectorAll('.question-item').forEach(i => i.classList.remove('excluded'));
+            updateStats();
+        }
+
+        function selectRandomQuestions(count) {
+            // Only select from filtered questions
+            const shuffled = [...filteredQuestionIndices].sort(() => Math.random() - 0.5);
+            selectedQuestions = shuffled.slice(0, Math.min(count, filteredQuestionIndices.length));
+            
+            document.querySelectorAll('.question-item').forEach(item => {
+                const index = parseInt(item.dataset.index);
+                const toggle = item.querySelector('.question-toggle');
+                if (selectedQuestions.includes(index)) {
+                    toggle.classList.add('active');
+                    item.classList.remove('excluded');
+                } else {
+                    toggle.classList.remove('active');
+                    item.classList.add('excluded');
+                }
+            });
+            updateStats();
+        }
+
+        function shuffleSelectedQuestions() {
+            selectedQuestions = selectedQuestions.sort(() => Math.random() - 0.5);
+            updateStats();
+        }
+
+        function updateStats() {
+            // Show filtered count
+            document.getElementById('totalQuestions').textContent = filteredQuestionIndices.length;
+            document.getElementById('selectedQuestions').textContent = selectedQuestions.length;
+        }
+
+        function renderPreview() {
+            const topic = questionBanks[selectedTopic];
+            const container = document.getElementById('previewContainer');
+            
+            container.innerHTML = selectedQuestions.map((qIndex, i) => {
+                const q = topic.questions[qIndex];
+                return `
+                    <div class="preview-question">
+                        <h4>${i + 1}. ${q.question}</h4>
+                        <div class="preview-options">
+                            ${q.options.map((opt, j) => `
+                                <div class="preview-option" onclick="previewSelect(this, ${j}, ${q.correct})">${String.fromCharCode(65 + j)}) ${opt}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function previewSelect(el, selected, correct) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.preview-option').forEach((opt, i) => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                if (i === correct) opt.classList.add('correct');
+                if (i === selected && selected !== correct) opt.classList.add('incorrect');
+            });
+        }
+
+        function executeQuiz() {
+            const quizName = document.getElementById('quizName').value || `${questionBanks[selectedTopic].name} Quiz`;
+            const topic = questionBanks[selectedTopic];
+            
+            // Create quiz data
+            const quizData = {
+                name: quizName,
+                topic: selectedTopic,
+                topicName: topic.name,
+                questions: selectedQuestions.map(i => topic.questions[i]),
+                created: new Date().toISOString()
+            };
+            
+            // Store in localStorage for the player
+            localStorage.setItem('mgt_quiz_data', JSON.stringify(quizData));
+            
+            const quizUrl = 'https://segevts.github.io/confluence-tools/quiz-player.html';
+            
+            const modalContent = `
+                <p>Use these settings in the <strong>Confluence Iframe macro</strong>:</p>
+                
+                <div class="iframe-settings">
+                    <div class="setting-row">
+                        <span class="setting-label">URL *</span>
+                        <span class="setting-value" onclick="copyValue(this)">${quizUrl}</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Width</span>
+                        <span class="setting-value" onclick="copyValue(this)">100%</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Height</span>
+                        <span class="setting-value" onclick="copyValue(this)">800</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Frameborder</span>
+                        <span class="setting-value" onclick="copyValue(this)">0</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Scrolling</span>
+                        <span class="setting-value" onclick="copyValue(this)">auto</span>
+                    </div>
+                </div>
+                
+                <button class="copy-btn" onclick="copyUrl()">📋 Copy URL</button>
+                
+                <div class="steps-list">
+                    <h4>Steps to embed in Confluence:</h4>
+                    <ol>
+                        <li>Go to <a href="https://mobileye-perfects.atlassian.net/wiki/spaces/REM/pages/1164312577" target="_blank" style="color: #00d4ff;">Confluence Quiz Tool</a></li>
+                        <li>Create a new sub-page or edit existing page</li>
+                        <li>Type <code>/iframe</code> to insert the Iframe macro</li>
+                        <li>Paste the URL and set Width/Height as shown above</li>
+                        <li>Publish the page</li>
+                    </ol>
+                </div>
+                
+                <p style="margin-top: 15px; font-size: 0.85rem; color: #71717a;">
+                    <strong>Quiz:</strong> ${quizName}<br>
+                    <strong>Topic:</strong> ${topic.name}<br>
+                    <strong>Questions:</strong> ${selectedQuestions.length}
+                </p>
+            `;
+            
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function copyUrl() {
+            const url = 'https://segevts.github.io/confluence-tools/quiz-player.html';
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ URL Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy URL', 2000);
+            });
+        }
+
+        function copyValue(el) {
+            const value = el.textContent;
+            navigator.clipboard.writeText(value).then(() => {
+                const original = el.textContent;
+                el.textContent = '✓ Copied!';
+                el.style.background = 'rgba(34, 197, 94, 0.2)';
+                setTimeout(() => {
+                    el.textContent = original;
+                    el.style.background = '';
+                }, 1500);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
