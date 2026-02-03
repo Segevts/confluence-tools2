@@ -1121,6 +1121,55 @@
                         correct: 1,
                         difficulty: "hard",
                         explanation: "SJ stands for Safe Junctions - junction-specific validation task."
+                    },
+                    {
+                        question: "What is the main purpose of Drivable Paths?",
+                        options: ["Decoration", "Define where vehicles can legally drive", "Measure road width", "Count traffic"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Drivable Paths define the legal trajectories where vehicles can travel."
+                    },
+                    {
+                        question: "What type of entity represents pedestrian crossing areas?",
+                        options: ["Lane Entity", "Crosswalk Entity", "Junction Entity", "Shoulder Entity"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Crosswalk Entity represents pedestrian crossing areas in the DP system."
+                    },
+                    {
+                        question: "What does the term 'connectivity' mean in DP context?",
+                        options: ["Internet connection", "How DPs link to each other at junctions", "GPS signal strength", "Data transfer speed"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Connectivity refers to how Drivable Paths connect to each other at junctions and transitions."
+                    },
+                    {
+                        question: "What is a Junction Entity?",
+                        options: ["A traffic light", "An area where multiple DPs meet and intersect", "A lane marking", "A speed bump"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "A Junction Entity defines the area where multiple Drivable Paths meet and intersect."
+                    },
+                    {
+                        question: "What does 'lane count' attribute represent?",
+                        options: ["Number of vehicles", "Number of parallel driving lanes in a DP", "Number of signs", "Number of DPs"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Lane count represents the number of parallel driving lanes within a Drivable Path."
+                    },
+                    {
+                        question: "What is a Shoulder Entity used for?",
+                        options: ["Pedestrians only", "Emergency stopping areas adjacent to the road", "Bike lanes", "Parking areas"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Shoulder Entity represents emergency stopping areas adjacent to the main roadway."
+                    },
+                    {
+                        question: "What keyboard shortcut is commonly used to switch between entity types?",
+                        options: ["Tab", "Space", "Enter", "Shift"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "Tab is commonly used to cycle between different entity types in the editing tools."
                     }
                 ]
             },
@@ -1173,6 +1222,55 @@
                         correct: 1,
                         difficulty: "hard",
                         explanation: "Days 17-19 cover DP Task and Sign Relevancy in the FPA training program."
+                    },
+                    {
+                        question: "What should you do before editing any object in MapMarker?",
+                        options: ["Delete existing data", "Verify with GT/imagery first", "Change zoom level", "Close other tabs"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Always verify with Ground Truth or imagery before making any edits."
+                    },
+                    {
+                        question: "What does the Inspector panel show?",
+                        options: ["Map layers only", "Properties and attributes of selected objects", "User settings", "File browser"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "The Inspector panel displays properties and attributes of currently selected objects."
+                    },
+                    {
+                        question: "How do you save changes in MapMarker?",
+                        options: ["Ctrl+S", "Click Save Data button or use changeset", "F5", "Auto-saves only"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Use the Save Data button or create a changeset to save your edits in MapMarker."
+                    },
+                    {
+                        question: "What is a 'tile' in FPA context?",
+                        options: ["A decorative element", "A geographic work unit/area assigned for editing", "A type of road marking", "A validation check"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "A tile is a geographic work unit - a specific area assigned for editing and QC."
+                    },
+                    {
+                        question: "What happens after external QC approval?",
+                        options: ["Task is deleted", "Tile moves to production/live maps", "Task starts over", "Nothing changes"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "After external QC approval, the tile's changes move to production/live maps."
+                    },
+                    {
+                        question: "What is the 3D View button used for?",
+                        options: ["Gaming mode", "Viewing street-level imagery for verification", "Creating 3D models", "Adjusting brightness"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "The 3D View button allows viewing street-level imagery to verify map features."
+                    },
+                    {
+                        question: "What does 'object editing' primarily involve in FPA?",
+                        options: ["Deleting all objects", "Adjusting positions, attributes, and connectivity of map features", "Creating new maps", "Changing colors"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Object editing involves adjusting positions, attributes, and connectivity of existing map features."
                     }
                 ]
             },
@@ -1301,6 +1399,62 @@
                         options: ["Polygon tool", "Spline tool", "Line tool", "Rectangle tool"],
                         correct: 1,
                         explanation: "The Spline tool is used for editing road edges and lane marks in Modeling."
+                    },
+                    {
+                        question: "What is the purpose of Road Edge (RE) modeling?",
+                        options: ["Decoration", "Define the boundary between road surface and non-road areas", "Count vehicles", "Speed measurement"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Road Edge modeling defines where the road surface ends and non-road areas begin."
+                    },
+                    {
+                        question: "What determines lane mark classification (solid vs dashed)?",
+                        options: ["Road width", "The physical appearance of the marking on the road", "Traffic volume", "Speed limit"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Lane marks are classified based on their actual physical appearance (solid, dashed, double)."
+                    },
+                    {
+                        question: "How should stop lines be positioned relative to crosswalks?",
+                        options: ["After the crosswalk", "Before the crosswalk (vehicle side)", "On top of crosswalk", "Anywhere nearby"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Stop lines should be positioned before the crosswalk on the approaching vehicle side."
+                    },
+                    {
+                        question: "What is the difference between a speed bump and a speed hump?",
+                        options: ["No difference", "Speed bump is taller/shorter, hump is more gradual", "Color only", "Location only"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Speed bumps are shorter/taller causing abrupt slowdown; speed humps are longer/more gradual."
+                    },
+                    {
+                        question: "What tool adjustment is needed for precise road edge placement?",
+                        options: ["Color change", "Node/vertex adjustment for accurate boundary tracing", "Layer toggle", "Brightness"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Use node/vertex adjustment to accurately trace the road edge boundary."
+                    },
+                    {
+                        question: "What reference should be used when modeling lane marks?",
+                        options: ["Memory", "Top View imagery showing actual road markings", "Estimated positions", "Previous versions only"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Use Top View imagery to accurately model lane marks as they appear on the road."
+                    },
+                    {
+                        question: "How should crosswalks at T-intersections be modeled?",
+                        options: ["Skip them", "Model each leg where crosswalk markings exist", "Model as one large polygon", "Only model the main road"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Model crosswalks on each leg of the intersection where actual markings exist."
+                    },
+                    {
+                        question: "What is the correct approach when road edge is unclear in imagery?",
+                        options: ["Guess the position", "Use best visible reference and mark as uncertain if needed", "Skip the area", "Delete existing data"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Use the best visible reference and mark as uncertain if the edge cannot be clearly determined."
                     }
                 ]
             },
@@ -1564,6 +1718,48 @@
                         options: ["They are the same", "Road Sub Type provides finer classification within RART", "RART replaces Road Sub Type", "No relationship"],
                         correct: 1,
                         explanation: "Road Sub Type provides more detailed classification within the broader RART categories."
+                    },
+                    {
+                        question: "What should be checked when assigning Road Sub Type?",
+                        options: ["Weather", "Physical characteristics visible in imagery", "Time of day", "Vehicle count"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Physical characteristics visible in imagery should be verified when assigning Road Sub Type."
+                    },
+                    {
+                        question: "Can a DP have multiple Road Sub Types?",
+                        options: ["Yes, always", "No, only one type per DP segment", "Only on highways", "Only in cities"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Each DP segment should have only one Road Sub Type assigned."
+                    },
+                    {
+                        question: "What indicates a Service Road sub type?",
+                        options: ["Width only", "A road running parallel to a main road for local access", "Color of pavement", "Number of lanes"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Service roads run parallel to main roads and provide local access to adjacent properties."
+                    },
+                    {
+                        question: "How should roundabout internal roads be classified?",
+                        options: ["As regular roads", "With specific roundabout sub type", "As junctions only", "Skip classification"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Roundabout internal roads have a specific sub type classification."
+                    },
+                    {
+                        question: "What distinguishes a tunnel road sub type?",
+                        options: ["Speed limit", "Road passes through an enclosed underground structure", "Number of lanes", "Traffic signals"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Tunnel sub type is used when the road passes through an enclosed underground structure."
+                    },
+                    {
+                        question: "What is a Bridge road sub type?",
+                        options: ["Road near water", "Road elevated over another feature (water, road, valley)", "Road with guardrails", "Road with tolls"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Bridge sub type is used when the road is elevated over water, another road, or terrain."
                     }
                 ]
             },
@@ -1610,6 +1806,55 @@
                         options: ["Sign color only", "Sign visibility and DP association accuracy", "Sign size", "Sign age"],
                         correct: 1,
                         explanation: "Speed Sign Relevancy checks sign visibility and the accuracy of sign-to-DP associations."
+                    },
+                    {
+                        question: "What does 'Missing detection' mean in Speed Sign Relevancy?",
+                        options: ["Sign is present in MM", "A sign exists in GT but is not detected in MM", "Sign was deleted", "Sign is correct"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Missing detection means a sign exists in Ground Truth but was not detected by the system."
+                    },
+                    {
+                        question: "Which DPs should a speed sign be associated with?",
+                        options: ["All DPs", "Only DPs that the sign applies to based on visibility and direction", "No DPs", "Random selection"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Signs should only be associated with DPs they actually apply to based on visibility and direction."
+                    },
+                    {
+                        question: "What should you do when a speed sign value is incorrect in MM?",
+                        options: ["Ignore it", "Flag for correction and note the actual value", "Delete the sign", "Keep the wrong value"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Flag signs with incorrect values for correction and note the actual value from GT."
+                    },
+                    {
+                        question: "How do you verify a speed sign's existence?",
+                        options: ["Trust MM data only", "Compare MM detection with Ground Truth imagery", "Guess based on road type", "Ask a coworker"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Always verify sign existence by comparing MM detection with actual Ground Truth imagery."
+                    },
+                    {
+                        question: "What is an 'explicit' speed sign?",
+                        options: ["A hidden sign", "A sign that shows the actual speed limit number", "A sign without numbers", "A temporary sign"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Explicit speed signs directly display the speed limit number."
+                    },
+                    {
+                        question: "What indicates an 'End of speed zone' sign?",
+                        options: ["Higher number", "Sign showing the end of a restricted speed area", "Green color", "Arrow pointing right"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "End of speed zone signs indicate where a restricted speed limit area ends."
+                    },
+                    {
+                        question: "Can one speed sign be relevant to multiple DPs?",
+                        options: ["No, only one DP", "Yes, if multiple DPs pass by the sign's location", "Only for highways", "Never"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "A speed sign can be relevant to multiple DPs if they all pass by the sign's visible location."
                     }
                 ]
             },
@@ -1809,6 +2054,55 @@
                         options: ["Start editing immediately", "Read TFL Relevancy sub pages completely", "Take an exam", "Review DP2DP only"],
                         correct: 1,
                         explanation: "New team members should first read the TFL Relevancy sub pages completely."
+                    },
+                    {
+                        question: "What does TFL Relevancy determine?",
+                        options: ["Traffic light colors", "Which traffic lights are relevant to which stop points", "Traffic light timing", "Light bulb types"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "TFL Relevancy determines which traffic lights are relevant to specific stop points."
+                    },
+                    {
+                        question: "What is a Stop Point (SP)?",
+                        options: ["A bus stop", "A location where vehicles must stop before proceeding", "A parking spot", "A speed bump"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "A Stop Point is a location where vehicles must come to a stop before proceeding."
+                    },
+                    {
+                        question: "What does 'Protects' relationship mean for a Stop Point?",
+                        options: ["Physical protection", "The reason/signal/sign that causes the stop requirement", "Security feature", "Weather protection"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "The 'Protects' relationship defines what signal, sign, or rule causes the stop requirement."
+                    },
+                    {
+                        question: "When is CW Priority set to 'Vehicle'?",
+                        options: ["Always", "When vehicles have right of way over pedestrians at the crosswalk", "Never", "Only at night"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Vehicle priority is set when vehicles have right of way over pedestrians at that crosswalk."
+                    },
+                    {
+                        question: "What tool is primarily used for Junction Semantics editing?",
+                        options: ["CAT", "MapMarker", "NEVO", "Photoshop"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "MapMarker is the primary tool used for Junction Semantics editing."
+                    },
+                    {
+                        question: "What defines a 'controlled' junction?",
+                        options: ["Police presence", "Traffic signals or signs regulating traffic flow", "Number of lanes", "Road width"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "A controlled junction has traffic signals or regulatory signs controlling traffic flow."
+                    },
+                    {
+                        question: "What should be checked when a sign appears damaged or partially visible?",
+                        options: ["Ignore it", "Use multiple imagery sources to verify sign content", "Delete the sign", "Assume standard sign"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Use multiple imagery sources (GT, Street View) to verify the actual sign content."
                     }
                 ]
             },
@@ -1916,6 +2210,55 @@
                         options: ["Junction Traffic Light", "Junior Team Leader", "Joint Task Lead", "Junction Type Label"],
                         correct: 1,
                         explanation: "JTL stands for Junior Team Leader."
+                    },
+                    {
+                        question: "What does MM stand for?",
+                        options: ["Map Manager", "MapMarker", "Measurement Mode", "Manual Mode"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "MM stands for MapMarker - the primary editing tool."
+                    },
+                    {
+                        question: "What does POI stand for?",
+                        options: ["Point of Interest", "Position of Icon", "Path of Input", "Polygon of Image"],
+                        correct: 0,
+                        difficulty: "easy",
+                        explanation: "POI stands for Point of Interest."
+                    },
+                    {
+                        question: "What does HD Map stand for?",
+                        options: ["Heavy Duty Map", "High Definition Map", "Highway Data Map", "Horizontal Distance Map"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "HD Map stands for High Definition Map - detailed maps for autonomous driving."
+                    },
+                    {
+                        question: "What does ODD stand for?",
+                        options: ["Operational Design Domain", "Optical Data Detection", "Outward Driving Direction", "Online Data Distribution"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "ODD stands for Operational Design Domain - conditions where a system is designed to function."
+                    },
+                    {
+                        question: "What does GIS stand for?",
+                        options: ["General Image System", "Geographic Information System", "Global Input Standard", "Grid Identification Service"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "GIS stands for Geographic Information System."
+                    },
+                    {
+                        question: "What does GPS stand for?",
+                        options: ["General Positioning Service", "Global Positioning System", "Grid Point System", "Geographic Path Service"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "GPS stands for Global Positioning System."
+                    },
+                    {
+                        question: "What does OCR stand for?",
+                        options: ["Optical Character Recognition", "Online Content Reader", "Object Classification Rate", "Output Control Register"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "OCR stands for Optical Character Recognition - reading text from images."
                     }
                 ]
             },
@@ -1980,6 +2323,62 @@
                         options: ["Waiting for initial review", "AIP did not fix the problem properly", "QC is reviewing", "Task is completed"],
                         correct: 1,
                         explanation: "'Needs-review' means AIP did not fix the problem or missed the specific problem that needed fixing."
+                    },
+                    {
+                        question: "What is the purpose of internal QC?",
+                        options: ["Final approval", "Initial quality check before external review", "User training", "Data backup"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Internal QC provides initial quality check before tiles go to external review."
+                    },
+                    {
+                        question: "What happens when a tile is QC-rejected?",
+                        options: ["Deleted permanently", "Returned to AIP for corrections", "Moved to archive", "Sent to production"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "QC-rejected tiles are returned to the AIP for necessary corrections."
+                    },
+                    {
+                        question: "What is the typical workflow order for a tile?",
+                        options: ["QC → AIP → Done → New", "New → In-progress → Done → QC → Approved", "Approved → New → Done", "Random order"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Tiles flow from New → In-progress → Done → QC review → Approved."
+                    },
+                    {
+                        question: "What should an AIP do when encountering an unclear situation?",
+                        options: ["Guess and continue", "Document the issue and ask for guidance", "Skip the tile", "Delete the data"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "AIPs should document unclear situations and seek guidance from QC or team leads."
+                    },
+                    {
+                        question: "What is a 'changeset' in the workflow?",
+                        options: ["A new tile", "A collection of edits saved together", "A QC report", "A training document"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "A changeset is a collection of edits that are saved together as a unit."
+                    },
+                    {
+                        question: "What indicates that a tile has passed external QC?",
+                        options: ["Yellow color", "Green 'Approved' status", "Pink color", "Grey color"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Green 'Approved' status indicates a tile has passed external QC."
+                    },
+                    {
+                        question: "What is the purpose of the Error task status?",
+                        options: ["System failure", "Track specific mistakes that need fixing", "Count completed work", "Archive old data"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Error task status tracks specific mistakes on a tile that need fixing."
+                    },
+                    {
+                        question: "How many attempts should an AIP make to fix an error before escalating?",
+                        options: ["Unlimited", "Follow team guidelines, typically 2-3 attempts then escalate", "Never escalate", "One attempt only"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "Follow team guidelines; typically after 2-3 fix attempts, escalate to QC or team lead."
                     }
                 ]
             }
@@ -2230,16 +2629,35 @@
             });
         }
 
+        // Shuffle options for a question and update the correct index
+        function shuffleQuestionOptions(question) {
+            const indices = question.options.map((_, i) => i);
+            // Fisher-Yates shuffle
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            // Create shuffled options and find new correct index
+            const shuffledOptions = indices.map(i => question.options[i]);
+            const newCorrectIndex = indices.indexOf(question.correct);
+            
+            return {
+                ...question,
+                options: shuffledOptions,
+                correct: newCorrectIndex
+            };
+        }
+
         function executeQuiz() {
             const quizName = document.getElementById('quizName').value || `${questionBanks[selectedTopic].name} Quiz`;
             const topic = questionBanks[selectedTopic];
             
-            // Create quiz data
+            // Create quiz data with SHUFFLED options for each question
             const quizData = {
                 name: quizName,
                 topic: selectedTopic,
                 topicName: topic.name,
-                questions: selectedQuestions.map(i => topic.questions[i]),
+                questions: selectedQuestions.map(i => shuffleQuestionOptions(topic.questions[i])),
                 created: new Date().toISOString()
             };
             
@@ -2324,5 +2742,5 @@
             document.getElementById('successModal').classList.remove('active');
         }
     </script>
-</body> 
+</body>
 </html>
