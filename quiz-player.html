@@ -58,6 +58,156 @@
         }
         .bg-switcher .icon { font-size: 1.1rem; }
         
+        /* Saved Quizzes Panel */
+        .saved-quizzes-btn {
+            position: fixed;
+            top: 15px;
+            right: 130px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 30px;
+            cursor: pointer;
+            color: #e4e4e7;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .saved-quizzes-btn:hover {
+            background: rgba(255,255,255,0.12);
+            transform: scale(1.05);
+        }
+        .saved-quizzes-btn .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        
+        .saved-panel {
+            display: none;
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 320px;
+            max-height: 70vh;
+            background: rgba(30,30,30,0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 999;
+            overflow: hidden;
+        }
+        .saved-panel.active { display: block; }
+        .saved-panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .saved-panel-header h3 { font-size: 1rem; color: #e4e4e7; }
+        .saved-panel-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .saved-panel-close:hover { color: #e4e4e7; }
+        .saved-panel-content {
+            padding: 15px;
+            max-height: calc(70vh - 60px);
+            overflow-y: auto;
+        }
+        .saved-quiz-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .saved-quiz-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .saved-quiz-item.active {
+            border-color: rgba(100,200,100,0.5);
+            background: rgba(100,200,100,0.1);
+        }
+        .saved-quiz-name {
+            font-weight: 600;
+            color: #e4e4e7;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .saved-quiz-meta {
+            font-size: 0.8rem;
+            color: #71717a;
+        }
+        .saved-quiz-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .saved-quiz-actions button {
+            flex: 1;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-load {
+            background: rgba(100,200,100,0.2);
+            color: #86efac;
+        }
+        .btn-load:hover { background: rgba(100,200,100,0.3); }
+        .btn-delete {
+            background: rgba(200,100,100,0.2);
+            color: #fca5a5;
+        }
+        .btn-delete:hover { background: rgba(200,100,100,0.3); }
+        .no-saved-quizzes {
+            text-align: center;
+            padding: 30px 20px;
+            color: #71717a;
+        }
+        .no-saved-quizzes .icon { font-size: 2rem; margin-bottom: 10px; }
+        
+        /* Save Quiz Button */
+        .save-quiz-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(100,200,100,0.15);
+            border: 1px solid rgba(100,200,100,0.3);
+            border-radius: 8px;
+            color: #86efac;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+        .save-quiz-btn:hover {
+            background: rgba(100,200,100,0.25);
+        }
+        
         .container {
             max-width: 100%;
             width: 100%;
@@ -475,10 +625,28 @@
     </style>
 </head>
 <body class="bg-dark">
+    <!-- Saved Quizzes Button -->
+    <div class="saved-quizzes-btn" onclick="toggleSavedPanel()">
+        <span class="icon">📋</span>
+        <span>Saved</span>
+        <span class="badge" id="savedCount">0</span>
+    </div>
+    
     <!-- Background Switcher Button -->
     <div class="bg-switcher" onclick="switchBackground()">
         <span class="icon">🎨</span>
         <span>Theme</span>
+    </div>
+    
+    <!-- Saved Quizzes Panel -->
+    <div class="saved-panel" id="savedPanel">
+        <div class="saved-panel-header">
+            <h3>📋 Saved Quizzes</h3>
+            <button class="saved-panel-close" onclick="toggleSavedPanel()">✕</button>
+        </div>
+        <div class="saved-panel-content" id="savedPanelContent">
+            <!-- Saved quizzes loaded dynamically -->
+        </div>
     </div>
     
     <div class="container">
@@ -515,6 +683,144 @@
                 currentBgIndex = backgrounds.indexOf(savedBg);
             }
         })();
+
+        // ==========================================
+        // SAVED QUIZZES FUNCTIONALITY
+        // ==========================================
+        const SAVED_QUIZZES_KEY = 'mgt_saved_quizzes';
+        
+        function getSavedQuizzes() {
+            try {
+                const saved = localStorage.getItem(SAVED_QUIZZES_KEY);
+                return saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                console.error('Error loading saved quizzes:', e);
+                return [];
+            }
+        }
+        
+        function saveQuizzesToStorage(quizzes) {
+            localStorage.setItem(SAVED_QUIZZES_KEY, JSON.stringify(quizzes));
+            updateSavedCount();
+        }
+        
+        function updateSavedCount() {
+            const count = getSavedQuizzes().length;
+            document.getElementById('savedCount').textContent = count;
+        }
+        
+        function toggleSavedPanel() {
+            const panel = document.getElementById('savedPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                renderSavedQuizzes();
+            }
+        }
+        
+        function renderSavedQuizzes() {
+            const container = document.getElementById('savedPanelContent');
+            const quizzes = getSavedQuizzes();
+            
+            if (quizzes.length === 0) {
+                container.innerHTML = `
+                    <div class="no-saved-quizzes">
+                        <div class="icon">📭</div>
+                        <p>No saved quizzes yet</p>
+                        <p style="font-size: 0.75rem; margin-top: 8px;">Create a quiz in Quiz Builder and save it here for quick access</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Check which quiz is currently active
+            const currentQuizId = quizData ? quizData.savedId : null;
+            
+            container.innerHTML = quizzes.map((quiz, index) => {
+                const isActive = quiz.id === currentQuizId;
+                const date = new Date(quiz.savedAt).toLocaleDateString();
+                return `
+                    <div class="saved-quiz-item ${isActive ? 'active' : ''}" data-index="${index}">
+                        <div class="saved-quiz-name">
+                            <span>${quiz.name}</span>
+                            ${isActive ? '<span style="color: #86efac; font-size: 0.75rem;">● Active</span>' : ''}
+                        </div>
+                        <div class="saved-quiz-meta">
+                            ${quiz.topicName || 'General'} • ${quiz.questions.length} questions • ${date}
+                        </div>
+                        <div class="saved-quiz-actions">
+                            <button class="btn-load" onclick="loadSavedQuiz(${index})">
+                                ${isActive ? '🔄 Restart' : '▶️ Load'}
+                            </button>
+                            <button class="btn-delete" onclick="deleteSavedQuiz(${index}, event)">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function saveCurrentQuiz() {
+            if (!quizData || !quizData.questions || quizData.questions.length === 0) {
+                alert('No quiz to save!');
+                return;
+            }
+            
+            const quizName = prompt('Enter a name for this quiz:', quizData.name || 'My Quiz');
+            if (!quizName) return;
+            
+            const quizzes = getSavedQuizzes();
+            
+            // Create saved quiz object
+            const savedQuiz = {
+                id: 'quiz_' + Date.now(),
+                name: quizName,
+                topicName: quizData.topicName,
+                questions: quizData.questions,
+                savedAt: new Date().toISOString()
+            };
+            
+            quizzes.push(savedQuiz);
+            saveQuizzesToStorage(quizzes);
+            
+            // Mark current quiz with saved ID
+            quizData.savedId = savedQuiz.id;
+            
+            alert(`Quiz "${quizName}" saved! You can access it from the Saved button.`);
+            renderSavedQuizzes();
+        }
+        
+        function loadSavedQuiz(index) {
+            const quizzes = getSavedQuizzes();
+            if (index >= 0 && index < quizzes.length) {
+                quizData = { ...quizzes[index], savedId: quizzes[index].id };
+                currentQuestion = 0;
+                answers = [];
+                
+                // Update header
+                document.getElementById('quizTitle').textContent = quizData.name || "Maps Ground Truth Quiz";
+                document.getElementById('quizSubtitle').textContent = quizData.topicName ? `Topic: ${quizData.topicName}` : "Test your knowledge";
+                
+                // Close panel and show start screen
+                document.getElementById('savedPanel').classList.remove('active');
+                showStartScreen();
+            }
+        }
+        
+        function deleteSavedQuiz(index, event) {
+            event.stopPropagation();
+            
+            const quizzes = getSavedQuizzes();
+            if (index >= 0 && index < quizzes.length) {
+                const quizName = quizzes[index].name;
+                if (confirm(`Delete "${quizName}"?`)) {
+                    quizzes.splice(index, 1);
+                    saveQuizzesToStorage(quizzes);
+                    renderSavedQuizzes();
+                }
+            }
+        }
+        
+        // Initialize saved count on load
+        document.addEventListener('DOMContentLoaded', updateSavedCount);
 
         // Default question bank (fallback)
         const defaultQuestions = [
@@ -603,6 +909,7 @@
 
         function showStartScreen() {
             const content = document.getElementById('content');
+            const isSaved = quizData.savedId ? true : false;
             content.innerHTML = `
                 <div class="start-card">
                     <div class="start-icon">🎯</div>
@@ -622,6 +929,7 @@
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="startQuiz()">Start Quiz →</button>
+                    ${!isSaved ? `<button class="save-quiz-btn" onclick="saveCurrentQuiz()">💾 Save This Quiz</button>` : `<p style="color: #86efac; font-size: 0.85rem; margin-top: 15px;">✓ Quiz saved</p>`}
                 </div>
             `;
         }
@@ -765,9 +1073,10 @@
                     
                     <p class="results-message">${message}</p>
                     
-                    <div class="button-row" style="justify-content: center;">
+                    <div class="button-row" style="justify-content: center; flex-wrap: wrap; gap: 10px;">
                         <button class="btn btn-secondary" onclick="toggleReview()">📋 Review Answers</button>
                         <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try Again</button>
+                        ${!quizData.savedId ? `<button class="btn btn-secondary" onclick="saveCurrentQuiz()" style="background: rgba(100,200,100,0.15); border-color: rgba(100,200,100,0.3); color: #86efac;">💾 Save Quiz</button>` : ''}
                     </div>
                     
                     <div class="review-section" id="reviewSection" style="display: none;">
