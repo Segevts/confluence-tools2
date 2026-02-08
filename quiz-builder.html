@@ -3308,6 +3308,76 @@
                         correct: 1,
                         difficulty: "medium",
                         explanation: "Pedestrian zones have very low speed limits or access restrictions for vehicles."
+                    },
+                    {
+                        question: "In Germany, does speed limit propagate straight and turn?",
+                        options: ["Yes/Yes", "Yes/No - straight propagates but not through turns", "No/No", "No/Yes"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Germany, speed limit propagates straight (Yes) but does NOT propagate through turns (No)."
+                    },
+                    {
+                        question: "In the United Kingdom, does speed limit propagate through turns?",
+                        options: ["No, never", "Yes, speed limits propagate both straight and through turns", "Only on highways", "Only in cities"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "UK is unique - speed limits propagate both straight (Yes) and through turns (Yes)."
+                    },
+                    {
+                        question: "In the Netherlands, how does speed limit propagate?",
+                        options: ["Propagates both ways", "Neither - speed limit ends after passing a side road", "Only straight", "Only turns"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Netherlands, speed limits do NOT propagate - a posted limit ends after passing a side road."
+                    },
+                    {
+                        question: "In Switzerland, does speed propagation apply?",
+                        options: ["Yes both ways", "No - speed limit ends at the next intersection", "Only straight", "Only on motorways"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Switzerland, speed limits do NOT propagate - they end at the next intersection."
+                    },
+                    {
+                        question: "In Spain, does speed limit propagate through turns?",
+                        options: ["Yes always", "No - propagates straight but not through turns", "No propagation", "Only in urban areas"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Spain, speed limit propagates straight (Yes) but NOT through turns (No)."
+                    },
+                    {
+                        question: "In Israel, how does speed propagation work?",
+                        options: ["Full propagation", "Neither straight nor turn - with possible exceptions for zones and CE signs", "Only straight", "Only on highways"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Israel, speed does NOT propagate straight or turn, with possible exceptions for zones and CE signs."
+                    },
+                    {
+                        question: "In Italy, does speed limit propagate?",
+                        options: ["Yes both ways", "Neither straight nor turn - with zonal validity and CE sign exceptions", "Only straight", "Depends on road type"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Italy, speed does NOT propagate (No/No), with exceptions for zonal validity signs and CE signs."
+                    },
+                    {
+                        question: "In France, how do speed limits propagate?",
+                        options: ["Both ways", "Neither direction - except for pedestrian zones and shared areas", "Only straight", "Always propagates"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In France, speed limits do NOT propagate (No/No), except in pedestrian zones, speed zones, and shared areas."
+                    },
+                    {
+                        question: "In Sweden, does speed limit propagate?",
+                        options: ["No propagation", "Yes both straight and through turns until another limit is posted", "Only straight", "Depends on sign color"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "In Sweden, speed propagates both straight and through turns (Yes/Yes) until another maximum limit is posted."
+                    },
+                    {
+                        question: "What is unique about Sweden's speed limit signs?",
+                        options: ["They are red", "Yellow on the inside, and there is no end of speed limit sign", "Blue background", "Digital only"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "Sweden's speed limits are yellow on the inside and there is no end of speed limit sign, except for temporary situations."
                     }
                 ]
             },
@@ -3745,6 +3815,48 @@
                         correct: 1,
                         difficulty: "hard",
                         explanation: "Expressways are typically RART 0 or 1 depending on separation type and length requirements."
+                    },
+                    {
+                        question: "When a road has two lanes and one is a PTL (Public Transport Lane), how should it be classified?",
+                        options: ["As single-lane", "As multi-lane - PTL counts as a lane", "Depends on PTL usage", "Skip the road"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "When a road has two lanes and one is a PTL, count it as multi-lane - PTL counts as a lane."
+                    },
+                    {
+                        question: "What should RART decisions be based on?",
+                        options: ["Street View only", "Lane marks detected from drives, even if different from Street View", "Satellite imagery only", "User preference"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "RART decision should be based on lane marks detected from drives, even if Street View or Mapillary looks different."
+                    },
+                    {
+                        question: "Which lane marking subtype is NOT counted as a separation for RART?",
+                        options: ["SOLID", "DASH", "NON-SEMANTIC", "DOUBLE_SOLID"],
+                        correct: 2,
+                        difficulty: "hard",
+                        explanation: "NON-SEMANTIC is the only subtype of separation we do NOT count as a separation for RART."
+                    },
+                    {
+                        question: "When RART 0 continues into a junction, what RART should be assigned around the junction?",
+                        options: ["Keep RART 0 throughout", "RART 1 for 200m before and 50m after the junction", "RART 15 at junction", "RART 2 at junction"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "When RART 0 continues into a junction, assign RART 1 for 200 meters before and 50 meters after the junction."
+                    },
+                    {
+                        question: "When a single lane splits into multiple lanes right before a junction, should RART change to multi-lane?",
+                        options: ["Yes, always", "No, don't change RART for lane splits before junctions", "Only if more than 3 lanes", "Only on highways"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "When a single lane splits into a few lanes right before a junction, do NOT change the RART to multi-lane."
+                    },
+                    {
+                        question: "Does solid vs dashed lane marking affect RART classification?",
+                        options: ["Yes, solid means single lane", "No, count as multi-lane if physically possible to maneuver between lanes", "Only dashed counts", "Depends on country"],
+                        correct: 1,
+                        difficulty: "hard",
+                        explanation: "RART should not be affected by solid or dashed - count as multi-lane when physically possible to maneuver, regardless of legality."
                     }
                 ]
             },
@@ -5026,6 +5138,90 @@
                         correct: 0,
                         difficulty: "medium",
                         explanation: "OTA stands for Over The Air - wireless updates to vehicle systems."
+                    },
+                    {
+                        question: "What does CWP stand for?",
+                        options: ["Crosswalk Point", "Crosswalk Priority", "Central Work Position", "Completed Work Package"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "CWP stands for Crosswalk Priority."
+                    },
+                    {
+                        question: "What does TFLR stand for?",
+                        options: ["Traffic Flow Light Reading", "Traffic Light Relevancy", "Traffic Line Reference", "Turn Lane Finder"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "TFLR stands for Traffic Light Relevancy."
+                    },
+                    {
+                        question: "What does ROR stand for?",
+                        options: ["Road On Ramp", "Right On Red", "Route Optimization Rule", "Roadway Override"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "ROR stands for Right On Red - permission to turn right on red light."
+                    },
+                    {
+                        question: "What does YOG stand for?",
+                        options: ["Yield On Green", "Yellow On Ground", "Your Own Guide", "Yield or Go"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "YOG stands for Yield On Green."
+                    },
+                    {
+                        question: "What does SIGNR stand for?",
+                        options: ["Signal Range", "Sign Relevancy", "Signage Reader", "Signal Reference"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "SIGNR stands for Sign Relevancy."
+                    },
+                    {
+                        question: "What does QCT stand for?",
+                        options: ["Quality Check Tool", "Quality Checker Trainee", "Quick Check Test", "QC Team"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "QCT stands for Quality Checker Trainee."
+                    },
+                    {
+                        question: "What does 'Supp' stand for in sign context?",
+                        options: ["Support", "Supplementary", "Supply", "Suppress"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Supp stands for Supplementary - usually used when working with signs."
+                    },
+                    {
+                        question: "What does CE stand for?",
+                        options: ["City Entrance", "Central Exit", "Crossing End", "Corner Edge"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "CE stands for City Entrance."
+                    },
+                    {
+                        question: "What does CX stand for?",
+                        options: ["Crossing", "City Exit", "Complex", "Center X"],
+                        correct: 1,
+                        difficulty: "medium",
+                        explanation: "CX stands for City Exit."
+                    },
+                    {
+                        question: "What does FPA stand for?",
+                        options: ["Full Path Annotation", "First Point Area", "Final Processing Area", "Fixed Point Assignment"],
+                        correct: 0,
+                        difficulty: "medium",
+                        explanation: "FPA stands for Full Path Annotation."
+                    },
+                    {
+                        question: "What does RSD stand for?",
+                        options: ["Road Segment Data", "Route System Definition", "Reference Standard Data", "Road Sign Display"],
+                        correct: 0,
+                        difficulty: "hard",
+                        explanation: "RSD stands for Road Segment Data."
+                    },
+                    {
+                        question: "What does 'Algo' stand for in team context?",
+                        options: ["Algorithm", "Algorithms team", "Alternative go", "All goals"],
+                        correct: 1,
+                        difficulty: "easy",
+                        explanation: "Algo refers to the Algorithms team."
                     }
                 ]
             },
