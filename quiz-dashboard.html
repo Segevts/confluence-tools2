@@ -500,7 +500,7 @@
         <div class="modal">
             <h2>🎓 Quiz Dashboard</h2>
             <p style="text-align: center; margin-bottom: 25px; color: rgba(255,255,255,0.7);">
-                Enter your details to track your progress
+                Team Leader access to view quiz results and team performance
             </p>
             <form id="loginForm">
                 <div class="form-group">
@@ -511,27 +511,27 @@
                     <label for="userTeam">Team</label>
                     <select id="userTeam" required>
                         <option value="">Select your team</option>
-                        <option value="IL">Israel (IL)</option>
-                        <option value="PH">Philippines (PH)</option>
-                        <option value="QC">Quality Control (QC)</option>
-                        <option value="TL">Team Leaders</option>
-                        <option value="Other">Other</option>
+                        <option value="Road Behavior">Road Behavior</option>
+                        <option value="Road Relevancy">Road Relevancy</option>
+                        <option value="DP & Entities">DP & Entities</option>
+                        <option value="Barak Maps">Barak Maps</option>
+                        <option value="Modeling">Modeling</option>
+                        <option value="CAT">CAT</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="userRole">Role</label>
                     <select id="userRole" required>
                         <option value="">Select your role</option>
-                        <option value="AIP">AIP (Associate Image Processor)</option>
-                        <option value="QC">Quality Checker</option>
-                        <option value="QCT">QC Trainee</option>
-                        <option value="JTL">Junior Team Leader</option>
-                        <option value="TL">Team Leader</option>
-                        <option value="STL">Senior Team Lead</option>
-                        <option value="SME">Subject Matter Expert</option>
-                        <option value="Other">Other</option>
+                        <option value="TL">Team Leader (TL)</option>
+                        <option value="SME">Subject Matter Expert (SME)</option>
+                        <option value="QC">Quality Checker (QC)</option>
+                        <option value="AIP">Associate Image Processor (AIP)</option>
                     </select>
                 </div>
+                <p id="roleNote" style="font-size: 0.8rem; color: #f59e0b; margin-top: -10px; display: none;">
+                    ⚠️ Dashboard access requires TL role. Others can view their own results only.
+                </p>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
                     Enter Dashboard
                 </button>
@@ -562,22 +562,22 @@
             <div class="stat-card">
                 <div class="stat-icon">📝</div>
                 <div class="stat-value" id="totalQuizzes">0</div>
-                <div class="stat-label">Quizzes Taken</div>
+                <div class="stat-label">Total Submissions</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-value" id="avgScore">0%</div>
-                <div class="stat-label">Average Score</div>
+                <div class="stat-label">Team Avg Score</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🏆</div>
                 <div class="stat-value" id="bestScore">0%</div>
-                <div class="stat-label">Best Score</div>
+                <div class="stat-label">Top Score</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📚</div>
+                <div class="stat-icon">👥</div>
                 <div class="stat-value" id="topicsCompleted">0</div>
-                <div class="stat-label">Topics Explored</div>
+                <div class="stat-label">Participants</div>
             </div>
         </div>
 
@@ -589,20 +589,42 @@
             <div class="quick-actions">
                 <div class="quick-action" onclick="window.open('quiz-builder.html', '_blank')">
                     <div class="icon">🎯</div>
-                    <div>Start New Quiz</div>
+                    <div>Create New Quiz</div>
                 </div>
                 <div class="quick-action" onclick="window.open('quiz-player.html', '_blank')">
                     <div class="icon">▶️</div>
-                    <div>Continue Saved Quiz</div>
+                    <div>Save/Share Quiz</div>
                 </div>
-                <div class="quick-action" onclick="showLeaderboard()">
-                    <div class="icon">🏅</div>
-                    <div>View Leaderboard</div>
+                <div class="quick-action" onclick="downloadAllResults()">
+                    <div class="icon">📥</div>
+                    <div>Download Results</div>
                 </div>
-                <div class="quick-action" onclick="exportData()">
-                    <div class="icon">📤</div>
-                    <div>Export My Data</div>
+                <div class="quick-action" onclick="showErrorAnalysis()">
+                    <div class="icon">📊</div>
+                    <div>Error Analysis</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Quiz Selector -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📋 Select Quiz to Review</h3>
+            </div>
+            <div class="filter-bar" style="flex-wrap: wrap;">
+                <select id="quizSelector" onchange="loadQuizResults()" style="flex: 1; min-width: 200px;">
+                    <option value="">All Quizzes</option>
+                </select>
+                <select id="teamSelector" onchange="loadQuizResults()" style="min-width: 150px;">
+                    <option value="">All Teams</option>
+                    <option value="Road Behavior">Road Behavior</option>
+                    <option value="Road Relevancy">Road Relevancy</option>
+                    <option value="DP & Entities">DP & Entities</option>
+                    <option value="Barak Maps">Barak Maps</option>
+                    <option value="Modeling">Modeling</option>
+                    <option value="CAT">CAT</option>
+                </select>
+                <button class="btn btn-secondary" onclick="refreshResults()">🔄 Refresh</button>
             </div>
         </div>
 
@@ -611,99 +633,106 @@
             <div class="main-content">
                 <!-- Tabs -->
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('history')">📋 My History</button>
-                    <button class="tab" onclick="switchTab('all')">👥 All Results</button>
-                    <button class="tab" onclick="switchTab('progress')">📈 Progress</button>
+                    <button class="tab active" onclick="switchTab('results')">👥 Team Results</button>
+                    <button class="tab" onclick="switchTab('errors')">❌ Error Analysis</button>
+                    <button class="tab" onclick="switchTab('individual')">👤 Individual Progress</button>
                 </div>
 
-                <!-- My History Tab -->
-                <div id="historyTab" class="card">
+                <!-- Team Results Tab -->
+                <div id="resultsTab" class="card">
                     <div class="card-header">
-                        <h3>📋 My Quiz History</h3>
-                        <div class="filter-bar">
-                            <select id="topicFilter" onchange="filterHistory()">
-                                <option value="">All Topics</option>
-                            </select>
-                            <select id="dateFilter" onchange="filterHistory()">
-                                <option value="">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
-                        </div>
+                        <h3>👥 Quiz Results by Team Member</h3>
+                        <button class="btn btn-secondary" onclick="downloadQuizResults()" style="font-size: 0.85rem;">
+                            📥 Download CSV
+                        </button>
                     </div>
-                    <div id="historyContent">
+                    <div id="resultsContent">
                         <table class="quiz-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Topic</th>
-                                    <th>Questions</th>
+                                    <th>Name</th>
+                                    <th>Team</th>
+                                    <th>Role</th>
                                     <th>Score</th>
+                                    <th>Errors</th>
                                     <th>Time</th>
+                                    <th>Date</th>
                                 </tr>
                             </thead>
-                            <tbody id="historyBody">
+                            <tbody id="resultsBody">
                                 <!-- Populated by JS -->
                             </tbody>
                         </table>
-                        <div id="emptyHistory" class="empty-state hidden">
-                            <div class="icon">📝</div>
-                            <p>No quiz history yet. Take your first quiz!</p>
-                            <button class="btn btn-primary" style="margin-top: 15px;" onclick="window.open('quiz-builder.html', '_blank')">
-                                Start Quiz
-                            </button>
+                        <div id="emptyResults" class="empty-state hidden">
+                            <div class="icon">📋</div>
+                            <p>No quiz results yet.</p>
+                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 10px;">
+                                Share the quiz link with your team members to collect results.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary Stats -->
+                    <div id="summaryStats" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                        <h4 style="margin-bottom: 15px; color: #818cf8;">📊 Summary</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;" id="summaryTotal">0</div>
+                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Participants</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #2ecc71;" id="summaryAvg">0%</div>
+                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Avg Score</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;" id="summaryBest">0%</div>
+                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Best Score</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #e74c3c;" id="summaryWorst">0%</div>
+                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Lowest Score</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- All Results Tab -->
-                <div id="allTab" class="card hidden">
+                <!-- Error Analysis Tab -->
+                <div id="errorsTab" class="card hidden">
                     <div class="card-header">
-                        <h3>👥 Team Results</h3>
-                        <div class="filter-bar">
-                            <select id="teamFilter" onchange="filterAllResults()">
-                                <option value="">All Teams</option>
-                                <option value="IL">Israel (IL)</option>
-                                <option value="PH">Philippines (PH)</option>
-                                <option value="QC">Quality Control</option>
-                                <option value="TL">Team Leaders</option>
-                            </select>
-                        </div>
+                        <h3>❌ Common Errors & Missed Questions</h3>
                     </div>
-                    <table class="quiz-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Team</th>
-                                <th>Topic</th>
-                                <th>Score</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allResultsBody">
+                    <div id="errorContent">
+                        <p style="color: rgba(255,255,255,0.6); margin-bottom: 20px;">
+                            Questions most frequently answered incorrectly by team members.
+                        </p>
+                        <div id="errorList">
                             <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Progress Tab -->
-                <div id="progressTab" class="card hidden">
+                <!-- Individual Progress Tab -->
+                <div id="individualTab" class="card hidden">
                     <div class="card-header">
-                        <h3>📈 Topic Progress</h3>
+                        <h3>👤 Individual Member Progress</h3>
+                        <select id="memberSelector" onchange="loadMemberProgress()" style="padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                            <option value="">Select team member</option>
+                        </select>
                     </div>
-                    <div id="progressContent">
-                        <!-- Populated by JS -->
+                    <div id="memberProgress">
+                        <div class="empty-state">
+                            <p>Select a team member to view their progress</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Admin Section (for TL/STL) -->
-                <div id="adminSection" class="admin-section hidden">
-                    <h4>🔧 Admin Controls</h4>
+                <!-- Admin Section -->
+                <div class="admin-section">
+                    <h4>🔧 Data Management</h4>
                     <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="importTeamData()">📥 Import Team Data</button>
+                        <button class="btn btn-secondary" onclick="importTeamData()">📥 Import Data</button>
                         <button class="btn btn-secondary" onclick="exportTeamData()">📤 Export All Data</button>
-                        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                        <button class="btn btn-danger" onclick="clearQuizResults()">🗑️ Clear Quiz Results</button>
                     </div>
                 </div>
             </div>
@@ -763,6 +792,16 @@
         }
 
         function setupLoginForm() {
+            // Show role note for non-TL roles
+            document.getElementById('userRole').addEventListener('change', (e) => {
+                const roleNote = document.getElementById('roleNote');
+                if (e.target.value && e.target.value !== 'TL') {
+                    roleNote.style.display = 'block';
+                } else {
+                    roleNote.style.display = 'none';
+                }
+            });
+
             document.getElementById('loginForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('userName').value.trim();
@@ -770,6 +809,12 @@
                 const role = document.getElementById('userRole').value;
 
                 if (name && team && role) {
+                    // Only TL can access dashboard
+                    if (role !== 'TL') {
+                        alert('Dashboard access is restricted to Team Leaders only.\n\nAIP, QC, and SME members should take quizzes through the Quiz Player link shared by their TL.');
+                        return;
+                    }
+
                     currentUser = {
                         id: generateId(),
                         name: name,
@@ -806,16 +851,13 @@
             document.getElementById('displayRole').textContent = `${currentUser.role} - ${currentUser.team}`;
             document.getElementById('userAvatar').textContent = getInitials(currentUser.name);
 
-            // Show admin section for TL/STL
-            if (['TL', 'STL', 'SME'].includes(currentUser.role)) {
-                document.getElementById('adminSection').classList.remove('hidden');
-            }
-
             // Load data
             loadDashboardData();
-            loadTopicFilters();
+            loadQuizSelector();
+            loadQuizResults();
             updateLeaderboard();
             loadRecentActivity();
+            loadMemberSelector();
         }
 
         function logout() {
@@ -827,9 +869,9 @@
         }
 
         function loadDashboardData() {
-            const results = getMyResults();
+            const results = getAllResults();
 
-            // Stats
+            // Stats - show all team results for TL
             document.getElementById('totalQuizzes').textContent = results.length;
 
             if (results.length > 0) {
@@ -839,87 +881,206 @@
                 const bestScore = Math.max(...results.map(r => r.scorePercent));
                 document.getElementById('bestScore').textContent = bestScore + '%';
 
-                const uniqueTopics = [...new Set(results.map(r => r.topic))];
-                document.getElementById('topicsCompleted').textContent = uniqueTopics.length;
+                const uniqueUsers = [...new Set(results.map(r => r.userName))];
+                document.getElementById('topicsCompleted').textContent = uniqueUsers.length;
             }
-
-            // History table
-            loadHistoryTable(results);
-            loadProgressTab();
-        }
-
-        function getMyResults() {
-            const allResults = JSON.parse(localStorage.getItem(STORAGE_KEYS.quizResults) || '[]');
-            return allResults.filter(r => r.userId === currentUser.id || r.userName?.toLowerCase() === currentUser.name.toLowerCase());
         }
 
         function getAllResults() {
             return JSON.parse(localStorage.getItem(STORAGE_KEYS.quizResults) || '[]');
         }
 
-        function loadHistoryTable(results) {
-            const tbody = document.getElementById('historyBody');
-            const emptyState = document.getElementById('emptyHistory');
+        function loadQuizSelector() {
+            const results = getAllResults();
+            const quizzes = [...new Set(results.map(r => r.quizName || r.topic).filter(q => q))];
+            const selector = document.getElementById('quizSelector');
+            
+            selector.innerHTML = '<option value="">All Quizzes</option>';
+            quizzes.forEach(quiz => {
+                const option = document.createElement('option');
+                option.value = quiz;
+                option.textContent = quiz;
+                selector.appendChild(option);
+            });
+        }
+
+        function loadMemberSelector() {
+            const results = getAllResults();
+            const members = [...new Set(results.map(r => r.userName).filter(n => n && n !== 'Anonymous'))];
+            const selector = document.getElementById('memberSelector');
+            
+            selector.innerHTML = '<option value="">Select team member</option>';
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member;
+                option.textContent = member;
+                selector.appendChild(option);
+            });
+        }
+
+        function loadQuizResults() {
+            const quizFilter = document.getElementById('quizSelector').value;
+            const teamFilter = document.getElementById('teamSelector').value;
+            let results = getAllResults();
+
+            // Apply filters
+            if (quizFilter) {
+                results = results.filter(r => (r.quizName || r.topic) === quizFilter);
+            }
+            if (teamFilter) {
+                results = results.filter(r => r.userTeam === teamFilter);
+            }
+
+            const tbody = document.getElementById('resultsBody');
+            const emptyState = document.getElementById('emptyResults');
 
             if (results.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.classList.remove('hidden');
+                document.getElementById('summaryStats').style.display = 'none';
                 return;
             }
 
             emptyState.classList.add('hidden');
+            document.getElementById('summaryStats').style.display = 'block';
 
             // Sort by date descending
             results.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             tbody.innerHTML = results.map(r => `
                 <tr>
-                    <td>${formatDate(r.date)}</td>
-                    <td>${r.topic || 'Mixed'}</td>
-                    <td>${r.correct}/${r.total}</td>
+                    <td><strong>${r.userName || 'Anonymous'}</strong></td>
+                    <td>${r.userTeam || '-'}</td>
+                    <td>${r.userRole || '-'}</td>
                     <td><span class="score-badge ${getScoreClass(r.scorePercent)}">${r.scorePercent}%</span></td>
+                    <td style="color: #e74c3c;">${r.total - r.correct} / ${r.total}</td>
                     <td>${r.duration || '-'}</td>
+                    <td>${formatDate(r.date)}</td>
                 </tr>
             `).join('');
+
+            // Update summary stats
+            document.getElementById('summaryTotal').textContent = results.length;
+            const avgScore = Math.round(results.reduce((sum, r) => sum + r.scorePercent, 0) / results.length);
+            document.getElementById('summaryAvg').textContent = avgScore + '%';
+            document.getElementById('summaryBest').textContent = Math.max(...results.map(r => r.scorePercent)) + '%';
+            document.getElementById('summaryWorst').textContent = Math.min(...results.map(r => r.scorePercent)) + '%';
         }
 
-        function loadProgressTab() {
-            const results = getMyResults();
-            const progressContent = document.getElementById('progressContent');
+        function refreshResults() {
+            loadQuizResults();
+            loadRecentActivity();
+            updateLeaderboard();
+        }
 
-            if (results.length === 0) {
-                progressContent.innerHTML = '<div class="empty-state"><p>Take some quizzes to see your progress!</p></div>';
+        function loadMemberProgress() {
+            const member = document.getElementById('memberSelector').value;
+            const progressDiv = document.getElementById('memberProgress');
+
+            if (!member) {
+                progressDiv.innerHTML = '<div class="empty-state"><p>Select a team member to view their progress</p></div>';
                 return;
             }
 
-            // Group by topic
-            const topicStats = {};
+            const results = getAllResults().filter(r => r.userName === member);
+            
+            if (results.length === 0) {
+                progressDiv.innerHTML = '<div class="empty-state"><p>No results found for this member</p></div>';
+                return;
+            }
+
+            // Group by quiz/topic
+            const quizStats = {};
             results.forEach(r => {
-                const topic = r.topic || 'Mixed';
-                if (!topicStats[topic]) {
-                    topicStats[topic] = { attempts: 0, totalScore: 0, bestScore: 0 };
+                const quiz = r.quizName || r.topic || 'General';
+                if (!quizStats[quiz]) {
+                    quizStats[quiz] = { attempts: 0, totalScore: 0, bestScore: 0, totalErrors: 0, totalQuestions: 0 };
                 }
-                topicStats[topic].attempts++;
-                topicStats[topic].totalScore += r.scorePercent;
-                topicStats[topic].bestScore = Math.max(topicStats[topic].bestScore, r.scorePercent);
+                quizStats[quiz].attempts++;
+                quizStats[quiz].totalScore += r.scorePercent;
+                quizStats[quiz].bestScore = Math.max(quizStats[quiz].bestScore, r.scorePercent);
+                quizStats[quiz].totalErrors += (r.total - r.correct);
+                quizStats[quiz].totalQuestions += r.total;
             });
 
-            progressContent.innerHTML = Object.entries(topicStats)
-                .sort((a, b) => b[1].bestScore - a[1].bestScore)
-                .map(([topic, stats]) => `
+            progressDiv.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 15px; background: rgba(102,126,234,0.1); border-radius: 12px;">
+                    <h4 style="margin-bottom: 10px;">${member}</h4>
+                    <p style="color: rgba(255,255,255,0.7);">
+                        Total Quizzes: ${results.length} | 
+                        Overall Avg: ${Math.round(results.reduce((s,r) => s + r.scorePercent, 0) / results.length)}%
+                    </p>
+                </div>
+                ${Object.entries(quizStats).map(([quiz, stats]) => `
                     <div class="topic-progress">
                         <div class="topic-header">
-                            <span class="topic-name">${topic}</span>
+                            <span class="topic-name">${quiz}</span>
                             <span class="topic-percent">${stats.bestScore}% best</span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${stats.bestScore}%"></div>
                         </div>
                         <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 5px;">
-                            ${stats.attempts} attempt(s) • Avg: ${Math.round(stats.totalScore / stats.attempts)}%
+                            ${stats.attempts} attempt(s) • Avg: ${Math.round(stats.totalScore / stats.attempts)}% • 
+                            Errors: ${stats.totalErrors}/${stats.totalQuestions}
                         </div>
                     </div>
-                `).join('');
+                `).join('')}
+            `;
+        }
+
+        function showErrorAnalysis() {
+            switchTab('errors');
+            loadErrorAnalysis();
+        }
+
+        function loadErrorAnalysis() {
+            const errorList = document.getElementById('errorList');
+            // For now, show a placeholder - in a full implementation, this would analyze actual wrong answers
+            const results = getAllResults();
+            
+            if (results.length === 0) {
+                errorList.innerHTML = '<div class="empty-state"><p>No quiz data to analyze yet</p></div>';
+                return;
+            }
+
+            // Group by user and show error rates
+            const userErrors = {};
+            results.forEach(r => {
+                const name = r.userName || 'Anonymous';
+                if (!userErrors[name]) {
+                    userErrors[name] = { errors: 0, total: 0, quizzes: 0 };
+                }
+                userErrors[name].errors += (r.total - r.correct);
+                userErrors[name].total += r.total;
+                userErrors[name].quizzes++;
+            });
+
+            const sortedUsers = Object.entries(userErrors)
+                .map(([name, stats]) => ({
+                    name,
+                    errorRate: Math.round((stats.errors / stats.total) * 100),
+                    errors: stats.errors,
+                    total: stats.total,
+                    quizzes: stats.quizzes
+                }))
+                .sort((a, b) => b.errorRate - a.errorRate);
+
+            errorList.innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #e74c3c;">Error Rate by Team Member</h4>
+                ${sortedUsers.map((user, i) => `
+                    <div class="leaderboard-item" style="background: ${user.errorRate > 30 ? 'rgba(231,76,60,0.1)' : 'rgba(255,255,255,0.05)'};">
+                        <div class="leaderboard-rank rank-other">${i + 1}</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${user.name}</div>
+                            <div class="leaderboard-stats">${user.quizzes} quizzes • ${user.errors}/${user.total} wrong answers</div>
+                        </div>
+                        <div class="leaderboard-score" style="color: ${user.errorRate > 30 ? '#e74c3c' : user.errorRate > 15 ? '#f39c12' : '#2ecc71'}">
+                            ${user.errorRate}% errors
+                        </div>
+                    </div>
+                `).join('')}
+            `;
         }
 
         function updateLeaderboard() {
@@ -1024,89 +1185,111 @@
             event.target.classList.add('active');
 
             // Show/hide content
-            document.getElementById('historyTab').classList.toggle('hidden', tab !== 'history');
-            document.getElementById('allTab').classList.toggle('hidden', tab !== 'all');
-            document.getElementById('progressTab').classList.toggle('hidden', tab !== 'progress');
+            document.getElementById('resultsTab').classList.toggle('hidden', tab !== 'results');
+            document.getElementById('errorsTab').classList.toggle('hidden', tab !== 'errors');
+            document.getElementById('individualTab').classList.toggle('hidden', tab !== 'individual');
 
-            if (tab === 'all') {
-                loadAllResultsTable();
+            if (tab === 'errors') {
+                loadErrorAnalysis();
+            }
+            if (tab === 'results') {
+                loadQuizResults();
             }
         }
 
-        function loadAllResultsTable() {
-            const results = getAllResults();
-            const tbody = document.getElementById('allResultsBody');
-
-            if (results.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No results yet</td></tr>';
-                return;
-            }
-
-            results.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            tbody.innerHTML = results.slice(0, 50).map(r => `
-                <tr>
-                    <td>${r.userName || 'Anonymous'}</td>
-                    <td>${r.userTeam || '-'}</td>
-                    <td>${r.topic || 'Mixed'}</td>
-                    <td><span class="score-badge ${getScoreClass(r.scorePercent)}">${r.scorePercent}%</span></td>
-                    <td>${formatDate(r.date)}</td>
-                </tr>
-            `).join('');
-        }
-
-        function filterHistory() {
-            const topicFilter = document.getElementById('topicFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            let results = getMyResults();
-
-            if (topicFilter) {
-                results = results.filter(r => r.topic === topicFilter);
-            }
-
-            if (dateFilter) {
-                const now = new Date();
-                const cutoff = new Date();
-                if (dateFilter === 'today') cutoff.setHours(0, 0, 0, 0);
-                if (dateFilter === 'week') cutoff.setDate(now.getDate() - 7);
-                if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
-                results = results.filter(r => new Date(r.date) >= cutoff);
-            }
-
-            loadHistoryTable(results);
-        }
-
-        function filterAllResults() {
-            const teamFilter = document.getElementById('teamFilter').value;
+        function downloadQuizResults() {
+            const quizFilter = document.getElementById('quizSelector').value;
+            const teamFilter = document.getElementById('teamSelector').value;
             let results = getAllResults();
 
+            if (quizFilter) {
+                results = results.filter(r => (r.quizName || r.topic) === quizFilter);
+            }
             if (teamFilter) {
                 results = results.filter(r => r.userTeam === teamFilter);
             }
 
-            const tbody = document.getElementById('allResultsBody');
-            results.sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (results.length === 0) {
+                alert('No results to download');
+                return;
+            }
 
-            tbody.innerHTML = results.slice(0, 50).map(r => `
-                <tr>
-                    <td>${r.userName || 'Anonymous'}</td>
-                    <td>${r.userTeam || '-'}</td>
-                    <td>${r.topic || 'Mixed'}</td>
-                    <td><span class="score-badge ${getScoreClass(r.scorePercent)}">${r.scorePercent}%</span></td>
-                    <td>${formatDate(r.date)}</td>
-                </tr>
-            `).join('');
+            // Create CSV
+            const headers = ['Name', 'Team', 'Role', 'Quiz', 'Score %', 'Correct', 'Total', 'Errors', 'Duration', 'Date'];
+            const rows = results.map(r => [
+                r.userName || 'Anonymous',
+                r.userTeam || '-',
+                r.userRole || '-',
+                r.quizName || r.topic || '-',
+                r.scorePercent,
+                r.correct,
+                r.total,
+                r.total - r.correct,
+                r.duration || '-',
+                new Date(r.date).toLocaleString()
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `quiz-results-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
-        // Admin functions
-        function exportData() {
-            const data = {
-                user: currentUser,
-                results: getMyResults(),
-                exportedAt: new Date().toISOString()
-            };
+        function downloadAllResults() {
+            const results = getAllResults();
+            if (results.length === 0) {
+                alert('No results to download');
+                return;
+            }
 
-            downloadJSON(data, `quiz-data-${currentUser.name.replace(/\s+/g, '-')}.json`);
+            const headers = ['Name', 'Team', 'Role', 'Quiz', 'Score %', 'Correct', 'Total', 'Errors', 'Duration', 'Date'];
+            const rows = results.map(r => [
+                r.userName || 'Anonymous',
+                r.userTeam || '-',
+                r.userRole || '-',
+                r.quizName || r.topic || '-',
+                r.scorePercent,
+                r.correct,
+                r.total,
+                r.total - r.correct,
+                r.duration || '-',
+                new Date(r.date).toLocaleString()
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `all-quiz-results-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearQuizResults() {
+            const quizFilter = document.getElementById('quizSelector').value;
+            
+            if (!quizFilter) {
+                if (confirm('Clear ALL quiz results? This cannot be undone.')) {
+                    localStorage.setItem(STORAGE_KEYS.quizResults, '[]');
+                    loadQuizResults();
+                    loadDashboardData();
+                    updateLeaderboard();
+                }
+            } else {
+                if (confirm(`Clear results for "${quizFilter}" only?`)) {
+                    let results = getAllResults();
+                    results = results.filter(r => (r.quizName || r.topic) !== quizFilter);
+                    localStorage.setItem(STORAGE_KEYS.quizResults, JSON.stringify(results));
+                    loadQuizResults();
+                    loadDashboardData();
+                    updateLeaderboard();
+                }
+            }
         }
 
         function exportTeamData() {

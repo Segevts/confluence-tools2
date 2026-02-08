@@ -953,37 +953,58 @@
             // Check if quiz has password protection
             const hasPassword = quizData.settings?.password;
             const hasTimeLimit = quizData.settings?.timeLimit;
-            
-            // If already have user info and no password, skip prompt
-            if (currentUserInfo && !hasPassword) {
-                startQuiz();
-                return;
-            }
 
             const content = document.getElementById('content');
             content.innerHTML = `
-                <div class="results-card" style="max-width: 450px; margin: 0 auto;">
+                <div class="results-card" style="max-width: 480px; margin: 0 auto;">
                     <div class="results-icon">👤</div>
                     <div class="results-label" style="font-size: 1.5rem; margin-bottom: 20px;">
-                        ${hasPassword ? '🔒 Protected Quiz' : 'Enter Your Name'}
+                        ${hasPassword ? '🔒 Protected Quiz' : 'Before You Start'}
                     </div>
                     <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">
-                        ${hasPassword ? 'This quiz requires a password to start.' : 'Your name will be saved with your quiz results for the team leaderboard.'}
+                        Enter your details. Your results will be saved for your Team Leader to review.
                     </p>
                     
                     ${hasPassword ? `
                     <div style="margin-bottom: 15px;">
+                        <label style="display: block; text-align: left; margin-bottom: 5px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Quiz Password *</label>
                         <input type="password" id="quizPassword" placeholder="Enter quiz password" 
-                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem; text-align: center;">
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
                         <p id="passwordError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; display: none;">Incorrect password</p>
                     </div>
                     ` : ''}
                     
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; text-align: left; margin-bottom: 5px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Your Name *</label>
+                        <input type="text" id="playerName" placeholder="Enter your full name" required
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;"
+                            value="${currentUserInfo?.name || ''}">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; text-align: left; margin-bottom: 5px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Your Team *</label>
+                        <select id="playerTeam" required
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+                            <option value="">Select your team</option>
+                            <option value="Road Behavior">Road Behavior</option>
+                            <option value="Road Relevancy">Road Relevancy</option>
+                            <option value="DP & Entities">DP & Entities</option>
+                            <option value="Barak Maps">Barak Maps</option>
+                            <option value="Modeling">Modeling</option>
+                            <option value="CAT">CAT</option>
+                        </select>
+                    </div>
+                    
                     <div style="margin-bottom: 20px;">
-                        <input type="text" id="playerName" placeholder="Your name" 
-                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem; text-align: center;"
-                            value="${currentUserInfo?.name || ''}"
-                            onkeypress="if(event.key==='Enter')confirmUserName()">
+                        <label style="display: block; text-align: left; margin-bottom: 5px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Your Role *</label>
+                        <select id="playerRole" required
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+                            <option value="">Select your role</option>
+                            <option value="AIP">AIP (Associate Image Processor)</option>
+                            <option value="QC">QC (Quality Checker)</option>
+                            <option value="SME">SME (Subject Matter Expert)</option>
+                            <option value="TL">TL (Team Leader)</option>
+                        </select>
                     </div>
                     
                     ${hasTimeLimit ? `
@@ -992,12 +1013,12 @@
                     </p>
                     ` : ''}
                     
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        ${!hasPassword ? `<button class="btn btn-secondary" onclick="skipUserName()">Skip</button>` : ''}
-                        <button class="btn btn-primary" onclick="confirmUserName()">Start Quiz</button>
-                    </div>
+                    <button class="btn btn-primary" onclick="confirmUserName()" style="width: 100%;">
+                        Start Quiz →
+                    </button>
+                    
                     <p style="font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 20px;">
-                        💡 For full tracking, use the <a href="quiz-dashboard.html" style="color: #818cf8;">Quiz Dashboard</a>
+                        Your results will be visible to your Team Leader in the Dashboard.
                     </p>
                 </div>
             `;
@@ -1027,14 +1048,33 @@
             }
             
             const name = document.getElementById('playerName')?.value?.trim();
-            if (name) {
-                currentUserInfo = {
-                    name: name,
-                    id: 'guest_' + Date.now(),
-                    team: 'Unknown',
-                    role: 'Guest'
-                };
+            const team = document.getElementById('playerTeam')?.value;
+            const role = document.getElementById('playerRole')?.value;
+            
+            // Validate required fields
+            if (!name) {
+                alert('Please enter your name');
+                document.getElementById('playerName').focus();
+                return;
             }
+            if (!team) {
+                alert('Please select your team');
+                document.getElementById('playerTeam').focus();
+                return;
+            }
+            if (!role) {
+                alert('Please select your role');
+                document.getElementById('playerRole').focus();
+                return;
+            }
+            
+            currentUserInfo = {
+                name: name,
+                id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                team: team,
+                role: role
+            };
+            
             startQuiz();
         }
 
