@@ -861,9 +861,24 @@
         let currentQuestion = 0;
         let answers = [];
         let answered = false;
+        let quizStartTime = null;
+        let currentUserInfo = null;
+
+        // Dashboard integration keys
+        const DASHBOARD_KEYS = {
+            currentUser: 'quizDashboard_currentUser',
+            quizResults: 'quizDashboard_results'
+        };
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', loadQuiz);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in via dashboard
+            const dashboardUser = localStorage.getItem(DASHBOARD_KEYS.currentUser);
+            if (dashboardUser) {
+                currentUserInfo = JSON.parse(dashboardUser);
+            }
+            loadQuiz();
+        });
 
         function loadQuiz() {
             // Try to load from URL parameter first
@@ -928,15 +943,110 @@
                             <div class="start-stat-label">Minutes</div>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="startQuiz()">Start Quiz →</button>
+                    <button class="btn btn-primary" onclick="promptUserName()">Start Quiz →</button>
                     ${!isSaved ? `<button class="save-quiz-btn" onclick="saveCurrentQuiz()">💾 Save This Quiz</button>` : `<p style="color: #86efac; font-size: 0.85rem; margin-top: 15px;">✓ Quiz saved</p>`}
                 </div>
             `;
         }
 
+        function promptUserName() {
+            // Check if quiz has password protection
+            const hasPassword = quizData.settings?.password;
+            const hasTimeLimit = quizData.settings?.timeLimit;
+            
+            // If already have user info and no password, skip prompt
+            if (currentUserInfo && !hasPassword) {
+                startQuiz();
+                return;
+            }
+
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="results-card" style="max-width: 450px; margin: 0 auto;">
+                    <div class="results-icon">👤</div>
+                    <div class="results-label" style="font-size: 1.5rem; margin-bottom: 20px;">
+                        ${hasPassword ? '🔒 Protected Quiz' : 'Enter Your Name'}
+                    </div>
+                    <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">
+                        ${hasPassword ? 'This quiz requires a password to start.' : 'Your name will be saved with your quiz results for the team leaderboard.'}
+                    </p>
+                    
+                    ${hasPassword ? `
+                    <div style="margin-bottom: 15px;">
+                        <input type="password" id="quizPassword" placeholder="Enter quiz password" 
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem; text-align: center;">
+                        <p id="passwordError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; display: none;">Incorrect password</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="playerName" placeholder="Your name" 
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 1.1rem; text-align: center;"
+                            value="${currentUserInfo?.name || ''}"
+                            onkeypress="if(event.key==='Enter')confirmUserName()">
+                    </div>
+                    
+                    ${hasTimeLimit ? `
+                    <p style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 15px;">
+                        ⏱️ Time Limit: ${quizData.settings.timeLimit} minutes
+                    </p>
+                    ` : ''}
+                    
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        ${!hasPassword ? `<button class="btn btn-secondary" onclick="skipUserName()">Skip</button>` : ''}
+                        <button class="btn btn-primary" onclick="confirmUserName()">Start Quiz</button>
+                    </div>
+                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 20px;">
+                        💡 For full tracking, use the <a href="quiz-dashboard.html" style="color: #818cf8;">Quiz Dashboard</a>
+                    </p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                if (hasPassword) {
+                    document.getElementById('quizPassword')?.focus();
+                } else {
+                    document.getElementById('playerName')?.focus();
+                }
+            }, 100);
+        }
+
+        function confirmUserName() {
+            // Check password if required
+            const hasPassword = quizData.settings?.password;
+            if (hasPassword) {
+                const enteredPassword = document.getElementById('quizPassword')?.value;
+                if (enteredPassword !== quizData.settings.password) {
+                    const errorEl = document.getElementById('passwordError');
+                    if (errorEl) {
+                        errorEl.style.display = 'block';
+                        document.getElementById('quizPassword').style.borderColor = '#ef4444';
+                    }
+                    return;
+                }
+            }
+            
+            const name = document.getElementById('playerName')?.value?.trim();
+            if (name) {
+                currentUserInfo = {
+                    name: name,
+                    id: 'guest_' + Date.now(),
+                    team: 'Unknown',
+                    role: 'Guest'
+                };
+            }
+            startQuiz();
+        }
+
+        function skipUserName() {
+            currentUserInfo = null;
+            startQuiz();
+        }
+
         function startQuiz() {
             currentQuestion = 0;
             answers = [];
+            quizStartTime = Date.now();
             showQuestion();
         }
 
@@ -1038,6 +1148,12 @@
             const total = quizData.questions.length;
             const percentage = Math.round((correct / total) * 100);
             
+            // Calculate duration
+            const duration = quizStartTime ? formatDuration(Date.now() - quizStartTime) : '-';
+            
+            // Save result to dashboard
+            saveResultToDashboard(correct, total, percentage, duration);
+            
             let icon, message;
             if (percentage >= 90) {
                 icon = "🏆";
@@ -1069,7 +1185,13 @@
                             <div class="stat-value incorrect">${total - correct}</div>
                             <div class="stat-label">Incorrect</div>
                         </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #818cf8;">${duration}</div>
+                            <div class="stat-label">Time</div>
+                        </div>
                     </div>
+                    
+                    ${currentUserInfo ? `<p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 10px;">📊 Result saved for ${currentUserInfo.name}</p>` : ''}
                     
                     <p class="results-message">${message}</p>
                     
@@ -1077,6 +1199,7 @@
                         <button class="btn btn-secondary" onclick="toggleReview()">📋 Review Answers</button>
                         <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try Again</button>
                         ${!quizData.savedId ? `<button class="btn btn-secondary" onclick="saveCurrentQuiz()" style="background: rgba(100,200,100,0.15); border-color: rgba(100,200,100,0.3); color: #86efac;">💾 Save Quiz</button>` : ''}
+                        <button class="btn btn-secondary" onclick="window.open('quiz-dashboard.html', '_blank')" style="background: rgba(129,140,248,0.15); border-color: rgba(129,140,248,0.3); color: #a5b4fc;">📊 Dashboard</button>
                     </div>
                     
                     <div class="review-section" id="reviewSection" style="display: none;">
@@ -1104,6 +1227,44 @@
         function toggleReview() {
             const review = document.getElementById('reviewSection');
             review.style.display = review.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function formatDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            if (minutes > 0) {
+                return `${minutes}m ${remainingSeconds}s`;
+            }
+            return `${seconds}s`;
+        }
+
+        function saveResultToDashboard(correct, total, percentage, duration) {
+            try {
+                const result = {
+                    id: 'result_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    date: new Date().toISOString(),
+                    topic: quizData.topicName || quizData.name || 'General',
+                    quizName: quizData.name || 'Quiz',
+                    correct: correct,
+                    total: total,
+                    scorePercent: percentage,
+                    duration: duration,
+                    userId: currentUserInfo?.id || null,
+                    userName: currentUserInfo?.name || 'Anonymous',
+                    userTeam: currentUserInfo?.team || 'Unknown',
+                    userRole: currentUserInfo?.role || 'Guest'
+                };
+
+                // Save to dashboard results
+                const results = JSON.parse(localStorage.getItem(DASHBOARD_KEYS.quizResults) || '[]');
+                results.push(result);
+                localStorage.setItem(DASHBOARD_KEYS.quizResults, JSON.stringify(results));
+
+                console.log('Quiz result saved to dashboard:', result);
+            } catch (e) {
+                console.error('Failed to save result to dashboard:', e);
+            }
         }
 
         function restartQuiz() {

@@ -859,6 +859,10 @@
 </head>
 <body class="bg-dark">
     <!-- Background Switcher Button -->
+    <a href="quiz-dashboard.html" style="position: fixed; top: 15px; right: 120px; z-index: 1000; display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(129,140,248,0.15); backdrop-filter: blur(25px); border: 1px solid rgba(129,140,248,0.3); border-radius: 30px; cursor: pointer; color: #a5b4fc; font-size: 0.85rem; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <span style="font-size: 1.1rem;">📊</span>
+        <span>Dashboard</span>
+    </a>
     <div class="bg-switcher" onclick="switchBackground()">
         <span class="icon">🎨</span>
         <span>Theme</span>
@@ -994,7 +998,59 @@
             <label style="display: block; margin-bottom: 10px; color: #a1a1aa;">Quiz Name:</label>
             <input type="text" class="quiz-name-input" id="quizName" placeholder="e.g., CAT Basics Quiz - Week 1">
             
-            <div class="button-row" style="margin-top: 0;">
+            <!-- Quiz Settings Section -->
+            <div style="margin-top: 25px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="color: #818cf8; margin-bottom: 15px; font-size: 1.1rem;">⚙️ Quiz Settings (Optional)</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <!-- Password Protection -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="enablePassword" onchange="togglePasswordField()" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>🔒 Password Protection</span>
+                        </label>
+                        <input type="text" id="quizPassword" placeholder="Enter quiz password" disabled
+                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #e4e4e7; font-size: 0.9rem; opacity: 0.5;">
+                        <p style="font-size: 0.75rem; color: #71717a; margin-top: 5px;">Users must enter password to start</p>
+                    </div>
+                    
+                    <!-- Max Participants -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="enableMaxUsers" onchange="toggleMaxUsersField()" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>👥 Limit Participants</span>
+                        </label>
+                        <input type="number" id="maxUsers" placeholder="Max participants" min="1" max="1000" disabled
+                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #e4e4e7; font-size: 0.9rem; opacity: 0.5;">
+                        <p style="font-size: 0.75rem; color: #71717a; margin-top: 5px;">Leave empty for unlimited</p>
+                    </div>
+                    
+                    <!-- Time Limit -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="enableTimeLimit" onchange="toggleTimeLimitField()" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>⏱️ Time Limit</span>
+                        </label>
+                        <input type="number" id="timeLimit" placeholder="Minutes" min="1" max="180" disabled
+                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #e4e4e7; font-size: 0.9rem; opacity: 0.5;">
+                        <p style="font-size: 0.75rem; color: #71717a; margin-top: 5px;">Time limit in minutes</p>
+                    </div>
+                    
+                    <!-- Shuffle Options -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="shuffleQuestions" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>🔀 Shuffle Questions</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; margin-top: 12px; cursor: pointer;">
+                            <input type="checkbox" id="shuffleAnswers" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>🔀 Shuffle Answer Options</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-row" style="margin-top: 25px;">
                 <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
                 <button class="btn btn-success" onclick="executeQuiz()">✨ Generate Quiz Settings</button>
             </div>
@@ -5815,17 +5871,69 @@
             };
         }
 
+        // Toggle functions for quiz settings
+        function togglePasswordField() {
+            const checkbox = document.getElementById('enablePassword');
+            const input = document.getElementById('quizPassword');
+            input.disabled = !checkbox.checked;
+            input.style.opacity = checkbox.checked ? '1' : '0.5';
+            if (!checkbox.checked) input.value = '';
+        }
+
+        function toggleMaxUsersField() {
+            const checkbox = document.getElementById('enableMaxUsers');
+            const input = document.getElementById('maxUsers');
+            input.disabled = !checkbox.checked;
+            input.style.opacity = checkbox.checked ? '1' : '0.5';
+            if (!checkbox.checked) input.value = '';
+        }
+
+        function toggleTimeLimitField() {
+            const checkbox = document.getElementById('enableTimeLimit');
+            const input = document.getElementById('timeLimit');
+            input.disabled = !checkbox.checked;
+            input.style.opacity = checkbox.checked ? '1' : '0.5';
+            if (!checkbox.checked) input.value = '';
+        }
+
         function executeQuiz() {
             const quizName = document.getElementById('quizName').value || `${questionBanks[selectedTopic].name} Quiz`;
             const topic = questionBanks[selectedTopic];
             
-            // Create quiz data with SHUFFLED options for each question
+            // Get quiz settings
+            const enablePassword = document.getElementById('enablePassword').checked;
+            const quizPassword = enablePassword ? document.getElementById('quizPassword').value : null;
+            const enableMaxUsers = document.getElementById('enableMaxUsers').checked;
+            const maxUsers = enableMaxUsers ? parseInt(document.getElementById('maxUsers').value) || null : null;
+            const enableTimeLimit = document.getElementById('enableTimeLimit').checked;
+            const timeLimit = enableTimeLimit ? parseInt(document.getElementById('timeLimit').value) || null : null;
+            const shuffleQuestions = document.getElementById('shuffleQuestions').checked;
+            const shuffleAnswers = document.getElementById('shuffleAnswers').checked;
+            
+            // Prepare questions
+            let questions = selectedQuestions.map(i => 
+                shuffleAnswers ? shuffleQuestionOptions(topic.questions[i]) : {...topic.questions[i]}
+            );
+            
+            // Shuffle questions if enabled
+            if (shuffleQuestions) {
+                questions = questions.sort(() => Math.random() - 0.5);
+            }
+            
+            // Create quiz data with settings
             const quizData = {
                 name: quizName,
                 topic: selectedTopic,
                 topicName: topic.name,
-                questions: selectedQuestions.map(i => shuffleQuestionOptions(topic.questions[i])),
-                created: new Date().toISOString()
+                questions: questions,
+                created: new Date().toISOString(),
+                settings: {
+                    password: quizPassword,
+                    maxUsers: maxUsers,
+                    timeLimit: timeLimit,
+                    shuffleQuestions: shuffleQuestions,
+                    shuffleAnswers: shuffleAnswers
+                }
             };
             
             // Store in localStorage for the player
@@ -5876,7 +5984,16 @@
                     <strong>Quiz:</strong> ${quizName}<br>
                     <strong>Topic:</strong> ${topic.name}<br>
                     <strong>Questions:</strong> ${selectedQuestions.length}
+                    ${quizPassword ? `<br><strong>🔒 Password:</strong> ${quizPassword}` : ''}
+                    ${maxUsers ? `<br><strong>👥 Max Participants:</strong> ${maxUsers}` : ''}
+                    ${timeLimit ? `<br><strong>⏱️ Time Limit:</strong> ${timeLimit} minutes` : ''}
                 </p>
+                
+                <div style="margin-top: 15px; padding: 12px; background: rgba(129,140,248,0.1); border-radius: 8px; border: 1px solid rgba(129,140,248,0.2);">
+                    <p style="font-size: 0.85rem; color: #a5b4fc; margin: 0;">
+                        📊 <strong>Dashboard:</strong> <a href="quiz-dashboard.html" target="_blank" style="color: #818cf8;">View team scores & leaderboard</a>
+                    </p>
+                </div>
             `;
             
             document.getElementById('modalContent').innerHTML = modalContent;
