@@ -623,6 +623,201 @@
         }
         .copy-btn:hover { background: #6d28d9; }
         
+        /* Custom Question Modal */
+        .custom-q-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .custom-q-modal.active { display: flex; }
+        .custom-q-content {
+            background: rgba(30,30,30,0.95);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .custom-q-content h2 {
+            color: #f0f0f0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .custom-q-form label {
+            display: block;
+            color: #a1a1aa;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .custom-q-form input[type="text"],
+        .custom-q-form textarea,
+        .custom-q-form select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: #e4e4e7;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .custom-q-form input:focus,
+        .custom-q-form textarea:focus,
+        .custom-q-form select:focus {
+            outline: none;
+            border-color: rgba(124, 58, 237, 0.5);
+            background: rgba(255,255,255,0.12);
+        }
+        .custom-q-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .option-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .option-row input[type="text"] {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .option-row input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #22c55e;
+        }
+        .option-label {
+            min-width: 25px;
+            color: #71717a;
+            font-weight: bold;
+        }
+        .custom-q-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .custom-q-buttons button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-add-question {
+            background: #22c55e;
+            color: white;
+        }
+        .btn-add-question:hover { background: #16a34a; }
+        .btn-cancel {
+            background: rgba(255,255,255,0.1);
+            color: #a1a1aa;
+        }
+        .btn-cancel:hover { background: rgba(255,255,255,0.15); }
+        
+        /* Custom Questions Section */
+        .custom-section {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px dashed rgba(124, 58, 237, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .custom-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .custom-section-header h3 {
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-create-question {
+            padding: 10px 20px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .btn-create-question:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+        }
+        .custom-questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .custom-question-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-question-item .q-text {
+            flex: 1;
+            color: #e4e4e7;
+            font-size: 0.9rem;
+        }
+        .custom-question-item .q-difficulty {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0 10px;
+        }
+        .custom-question-item .q-difficulty.easy { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .custom-question-item .q-difficulty.medium { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .custom-question-item .q-difficulty.hard { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .custom-question-item .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .custom-question-item .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+        .no-custom-questions {
+            color: #71717a;
+            text-align: center;
+            padding: 15px;
+            font-style: italic;
+        }
+        
         .steps-list {
             background: rgba(255,255,255,0.03);
             border-radius: 10px;
@@ -725,6 +920,19 @@
                 </div>
             </div>
             
+            <!-- Custom Questions Section -->
+            <div class="custom-section">
+                <div class="custom-section-header">
+                    <h3>✏️ My Custom Questions</h3>
+                    <button class="btn-create-question" onclick="openCustomQuestionModal()">
+                        <span>+</span> Create Question
+                    </button>
+                </div>
+                <div class="custom-questions-list" id="customQuestionsList">
+                    <div class="no-custom-questions">No custom questions yet. Click "Create Question" to add your own!</div>
+                </div>
+            </div>
+            
             <h3 class="category-header">🔧 Core Tasks</h3>
             <div class="topic-grid" id="coreTopics"></div>
             
@@ -801,6 +1009,54 @@
             <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 15px;">Close</button>
         </div>
     </div>
+    
+    <!-- Custom Question Modal -->
+    <div class="custom-q-modal" id="customQuestionModal">
+        <div class="custom-q-content">
+            <h2>✏️ Create Custom Question</h2>
+            <form class="custom-q-form" id="customQuestionForm" onsubmit="saveCustomQuestion(event)">
+                <label>Question Text *</label>
+                <textarea id="cqQuestion" placeholder="Enter your question here..." required></textarea>
+                
+                <label>Answer Options * (select the correct answer)</label>
+                <div class="option-row">
+                    <span class="option-label">A.</span>
+                    <input type="text" id="cqOptionA" placeholder="Option A" required>
+                    <input type="radio" name="correctAnswer" value="0" required>
+                </div>
+                <div class="option-row">
+                    <span class="option-label">B.</span>
+                    <input type="text" id="cqOptionB" placeholder="Option B" required>
+                    <input type="radio" name="correctAnswer" value="1">
+                </div>
+                <div class="option-row">
+                    <span class="option-label">C.</span>
+                    <input type="text" id="cqOptionC" placeholder="Option C" required>
+                    <input type="radio" name="correctAnswer" value="2">
+                </div>
+                <div class="option-row">
+                    <span class="option-label">D.</span>
+                    <input type="text" id="cqOptionD" placeholder="Option D" required>
+                    <input type="radio" name="correctAnswer" value="3">
+                </div>
+                
+                <label>Difficulty Level</label>
+                <select id="cqDifficulty">
+                    <option value="easy">🌱 Easy</option>
+                    <option value="medium" selected>⚡ Medium</option>
+                    <option value="hard">🔥 Hard</option>
+                </select>
+                
+                <label>Explanation (optional)</label>
+                <textarea id="cqExplanation" placeholder="Explain why the correct answer is correct..."></textarea>
+                
+                <div class="custom-q-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeCustomQuestionModal()">Cancel</button>
+                    <button type="submit" class="btn-add-question">Add Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
         // ==========================================
@@ -824,7 +1080,89 @@
                 document.body.classList.add(savedBg);
                 currentBgIndex = backgrounds.indexOf(savedBg);
             }
+            // Load custom questions
+            renderCustomQuestions();
         });
+
+        // ==========================================
+        // CUSTOM QUESTIONS SYSTEM
+        // ==========================================
+        let customQuestions = JSON.parse(localStorage.getItem('quizBuilderCustomQuestions') || '[]');
+        
+        function openCustomQuestionModal() {
+            document.getElementById('customQuestionModal').classList.add('active');
+            document.getElementById('customQuestionForm').reset();
+        }
+        
+        function closeCustomQuestionModal() {
+            document.getElementById('customQuestionModal').classList.remove('active');
+        }
+        
+        function saveCustomQuestion(event) {
+            event.preventDefault();
+            
+            const question = document.getElementById('cqQuestion').value.trim();
+            const optionA = document.getElementById('cqOptionA').value.trim();
+            const optionB = document.getElementById('cqOptionB').value.trim();
+            const optionC = document.getElementById('cqOptionC').value.trim();
+            const optionD = document.getElementById('cqOptionD').value.trim();
+            const correctAnswer = parseInt(document.querySelector('input[name="correctAnswer"]:checked').value);
+            const difficulty = document.getElementById('cqDifficulty').value;
+            const explanation = document.getElementById('cqExplanation').value.trim();
+            
+            const newQuestion = {
+                id: Date.now(),
+                question: question,
+                options: [optionA, optionB, optionC, optionD],
+                correct: correctAnswer,
+                difficulty: difficulty,
+                explanation: explanation || 'Custom question'
+            };
+            
+            customQuestions.push(newQuestion);
+            localStorage.setItem('quizBuilderCustomQuestions', JSON.stringify(customQuestions));
+            
+            renderCustomQuestions();
+            closeCustomQuestionModal();
+            updateDifficultyCount();
+        }
+        
+        function deleteCustomQuestion(id) {
+            if (confirm('Are you sure you want to delete this custom question?')) {
+                customQuestions = customQuestions.filter(q => q.id !== id);
+                localStorage.setItem('quizBuilderCustomQuestions', JSON.stringify(customQuestions));
+                renderCustomQuestions();
+                updateDifficultyCount();
+            }
+        }
+        
+        function renderCustomQuestions() {
+            const container = document.getElementById('customQuestionsList');
+            
+            if (customQuestions.length === 0) {
+                container.innerHTML = '<div class="no-custom-questions">No custom questions yet. Click "Create Question" to add your own!</div>';
+            } else {
+                container.innerHTML = customQuestions.map(q => `
+                    <div class="custom-question-item">
+                        <span class="q-text">${q.question.substring(0, 80)}${q.question.length > 80 ? '...' : ''}</span>
+                        <span class="q-difficulty ${q.difficulty}">${q.difficulty}</span>
+                        <button class="btn-delete" onclick="deleteCustomQuestion(${q.id})">🗑️ Delete</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Refresh topics to show/hide custom questions topic
+            if (typeof renderTopics === 'function') {
+                renderTopics();
+            }
+        }
+        
+        function getCustomQuestionsFiltered() {
+            if (selectedDifficulty === 'all') {
+                return customQuestions;
+            }
+            return customQuestions.filter(q => q.difficulty === selectedDifficulty);
+        }
 
         // ==========================================
         // DIFFICULTY SYSTEM
@@ -5017,6 +5355,20 @@
             Object.values(categories).forEach(container => {
                 if (container) container.innerHTML = '';
             });
+            
+            // Add custom questions as a topic if any exist
+            if (customQuestions.length > 0) {
+                questionBanks['custom-questions'] = {
+                    name: "My Custom Questions",
+                    icon: "✏️",
+                    description: "Your personally created questions",
+                    category: "general",
+                    taskLeader: "You",
+                    questions: customQuestions
+                };
+            } else {
+                delete questionBanks['custom-questions'];
+            }
 
             Object.entries(questionBanks).forEach(([key, topic]) => {
                 const container = categories[topic.category];
