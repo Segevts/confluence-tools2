@@ -794,6 +794,7 @@
                 quizData = { ...quizzes[index], savedId: quizzes[index].id };
                 currentQuestion = 0;
                 answers = [];
+                currentUserInfo = null; // Reset user info to prompt again
                 
                 // Update header
                 document.getElementById('quizTitle').textContent = quizData.name || "Maps Ground Truth Quiz";
@@ -1302,13 +1303,24 @@
                 localStorage.setItem(DASHBOARD_KEYS.quizResults, JSON.stringify(results));
 
                 console.log('Quiz result saved to dashboard:', result);
+                console.log('Total results in storage:', results.length);
+                
+                // Show save confirmation
+                resultSaved = true;
             } catch (e) {
                 console.error('Failed to save result to dashboard:', e);
+                alert('Warning: Could not save result to dashboard. Error: ' + e.message);
             }
         }
+        
+        let resultSaved = false;
 
         function restartQuiz() {
-            startQuiz();
+            // Keep user info but restart the quiz
+            currentQuestion = 0;
+            answers = [];
+            quizStartTime = Date.now();
+            showQuestion();
         }
     </script>
 </body>

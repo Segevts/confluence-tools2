@@ -732,6 +732,7 @@
                     <div class="action-buttons">
                         <button class="btn btn-secondary" onclick="importTeamData()">📥 Import Data</button>
                         <button class="btn btn-secondary" onclick="exportTeamData()">📤 Export All Data</button>
+                        <button class="btn btn-secondary" onclick="debugStorage()">🔍 Debug Storage</button>
                         <button class="btn btn-danger" onclick="clearQuizResults()">🗑️ Clear Quiz Results</button>
                     </div>
                 </div>
@@ -1290,6 +1291,35 @@
                     updateLeaderboard();
                 }
             }
+        }
+
+        function debugStorage() {
+            const results = getAllResults();
+            const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.allUsers) || '[]');
+            
+            let debugInfo = `=== Quiz Dashboard Debug Info ===\n\n`;
+            debugInfo += `Storage Key: ${STORAGE_KEYS.quizResults}\n`;
+            debugInfo += `Total Results in Storage: ${results.length}\n`;
+            debugInfo += `Total Users: ${users.length}\n\n`;
+            
+            if (results.length > 0) {
+                debugInfo += `=== Recent Results (last 5) ===\n`;
+                results.slice(-5).forEach((r, i) => {
+                    debugInfo += `\n${i+1}. ${r.userName || 'Anonymous'} (${r.userTeam || 'Unknown'})\n`;
+                    debugInfo += `   Quiz: ${r.quizName || r.topic || 'Unknown'}\n`;
+                    debugInfo += `   Score: ${r.scorePercent}% (${r.correct}/${r.total})\n`;
+                    debugInfo += `   Date: ${new Date(r.date).toLocaleString()}\n`;
+                });
+            } else {
+                debugInfo += `No results found in storage.\n`;
+                debugInfo += `\nPossible reasons:\n`;
+                debugInfo += `1. Quiz was taken in a different browser/incognito\n`;
+                debugInfo += `2. User didn't complete the quiz\n`;
+                debugInfo += `3. LocalStorage was cleared\n`;
+            }
+            
+            alert(debugInfo);
+            console.log('Debug Info:', { results, users });
         }
 
         function exportTeamData() {
